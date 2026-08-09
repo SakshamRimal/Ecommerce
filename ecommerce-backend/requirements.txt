@@ -1,0 +1,82 @@
+# =========================================================
+# CORE FRAMEWORK
+# =========================================================
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+starlette
+
+# =========================================================
+# CONFIG MANAGEMENT (12-factor)
+# =========================================================
+pydantic==2.13.4
+pydantic-settings==2.15.0
+python-dotenv==1.2.2
+
+# =========================================================
+# DATABASE (Postgres, async ORM, migrations)
+# =========================================================
+sqlalchemy[asyncio]==2.0.51
+asyncpg==0.31.0
+alembic==1.19.1
+psycopg2-binary==2.9.10          # sync driver, needed by Alembic offline migrations
+
+# =========================================================
+# CACHING
+# =========================================================
+redis==5.2.1
+hiredis==3.1.0                   # C parser, faster redis client
+
+# =========================================================
+# SEARCH
+# =========================================================
+elasticsearch[async]==8.16.0
+
+# =========================================================
+# AUTH & SECURITY
+# =========================================================
+python-jose[cryptography]==3.4.0   # JWT
+passlib[bcrypt]==1.7.4             # password hashing
+bcrypt==4.2.1
+python-multipart==0.0.20           # form/file parsing (needed for OAuth2PasswordRequestForm)
+slowapi==0.1.9                     # rate limiting middleware
+
+# =========================================================
+# BACKGROUND JOBS / ASYNC TASKS
+# =========================================================
+arq==0.26.3                        # lightweight async task queue (redis-based)
+# celery==5.5.1                    # alternative — uncomment if you prefer Celery over arq
+# flower==2.0.1                    # celery monitoring UI (only if using celery)
+
+# =========================================================
+# TRANSACTIONAL EMAILS
+# =========================================================
+fastapi-mail
+jinja2==3.1.5                      # email templating
+
+# =========================================================
+# LOGGING, MONITORING & OBSERVABILITY
+# =========================================================
+structlog==26.1.0
+python-json-logger==4.1.0
+prometheus-fastapi-instrumentator==7.0.2
+opentelemetry-api==1.30.0
+opentelemetry-sdk==1.30.0
+opentelemetry-instrumentation-fastapi==0.51b0
+opentelemetry-instrumentation-sqlalchemy==0.51b0
+opentelemetry-exporter-otlp==1.30.0
+
+# =========================================================
+# HTTP CLIENT (for external APIs, e.g. AI integration later)
+# =========================================================
+httpx==0.28.1
+
+# =========================================================
+# DEV / TESTING (optional: keep separate as requirements-dev.txt)
+# =========================================================
+pytest==8.3.5
+pytest-asyncio==0.25.3
+pytest-cov==6.0.0
+
+faker==33.3.1                      # fake data for tests/seeding
+ruff==0.9.4                        # linting + formatting
+mypy==1.15.0                       # static type checking
