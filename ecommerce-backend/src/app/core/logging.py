@@ -39,5 +39,7 @@ def get_logger(name: str = "app"):
     return structlog.get_logger(name)
 
         
-    
+"""
+Why structlog? It binds context (like request_id) automatically to every log line without you passing it manually everywhere. This is what makes distributed tracing/debugging possible later.
 
+"""
