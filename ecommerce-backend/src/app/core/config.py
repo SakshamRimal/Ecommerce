@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     app_name: str = "ecommerce-backend"
     app_env: str = "local" #local|stagin|Production
     debug: bool = False
-    log_lovel: str =  "INFO"   
+    log_level: str =  "INFO"   
     
     #server 
     host: str = "0.0.0.0"
