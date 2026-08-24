@@ -1,8 +1,8 @@
-from app.api.v1.health.schema import HealthRepository
+from app.api.v1.health.repository import HealthCheckRepository
 from app.api.v1.health.schema import HealthCheckResponse
 
 class HealthService:
-    def __init__(self , repository:HealthRepository):
+    def __init__(self , repository:HealthCheckRepository):
         self.repository = repository
         
     async def get_health(self) -> HealthCheckResponse:
