@@ -38,6 +38,7 @@ dependencies = [
     "ruff==0.9.4",
     "slowapi==0.1.9",
     "sqlalchemy[asyncio]==2.0.51",
+    "sqlmodel>=0.0.39",
     "starlette>=0.52.1",
     "structlog==26.1.0",
     "uvicorn[standard]==0.52.1",
