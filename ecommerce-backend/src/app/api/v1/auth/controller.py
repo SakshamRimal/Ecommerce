@@ -13,6 +13,7 @@ from app.api.v1.auth.schema import (
     TokenResponse,
     RefreshTokenRequest,
 )
+from app.main import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,5 +23,30 @@ def get_auth_service(session: AsyncSession = Depends(get_db_session)) -> AuthSer
 
 @router.post("/register" , response_model=UserResponse , status_code=201)
 async def register(
-    
-)
+    data: UserRegisterRequest,
+    service: AuthService = Depends(get_auth_service)
+):
+    return await service.register(data)
+
+@router.post("/login" , response_model=TokenResponse)
+@limiter.limit("5/minute")
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    service: AuthService = Depends(get_auth_service)
+):
+    return await service.login(form_data.username , form_data.password)
+
+@router.post("/refresh" , response_model=TokenResponse)
+async def refresh_token(
+    data: RefreshTokenRequest,
+    service: AuthService = Depends(get_auth_service)
+):
+    return await service.refresh_token(data.refresh_token)
+
+@router.get("/me" , response_model=UserResponse)
+async def get_me(
+    current_user: User = Depends(get_current_user)
+):
+    return current_user
+
+
