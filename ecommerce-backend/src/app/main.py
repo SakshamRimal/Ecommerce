@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
+from app.core.exceptions import AppException
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
@@ -32,6 +35,13 @@ def create_app() -> FastAPI:
         debug=settings.debug,
         lifespan=lifespan,
     )
+    @app.exception_handler(AppException)
+    async def app_exception_handler(request: Request, exc: AppException) -> Response:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+    
     app.add_middleware(RequestContextMiddleware)
     app.include_router(api_router)
     return app
