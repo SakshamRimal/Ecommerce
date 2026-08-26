@@ -3,16 +3,25 @@ import structlog
 from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
-from app.core.exceptions import AppException
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter , _rate_limit_exceeded_handler 
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
+
+from app.core.exceptions import AppException
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.middlewares.request_context import RequestContextMiddleware
+from app.middlewares.security_headers import SecurityHeadersMiddleware
 from app.db.session import engine 
 from app.api.v1.router import api_router
 
 configure_logging()
 logger = get_logger("startup")
+
+
+limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,9 +50,22 @@ def create_app() -> FastAPI:
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
+        
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     
+
+    app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RequestContextMiddleware)
     app.include_router(api_router)
+
+    app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_allowed_origins,  # NEVER use "*" in production
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
     return app
 
 app = create_app()
