@@ -4,9 +4,9 @@ from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter , _rate_limit_exceeded_handler 
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from app.core.rate_limiter import limiter
 
 
 from app.core.exceptions import AppException
@@ -20,8 +20,6 @@ from app.api.v1.router import api_router
 configure_logging()
 logger = get_logger("startup")
 
-
-limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
