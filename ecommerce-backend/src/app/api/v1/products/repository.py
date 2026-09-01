@@ -19,14 +19,31 @@ class ProductRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
     
-    async def list_products(self , limit:int =20 , offset: int = 0 ) -> list[Product]:
-        stmt = (
-            select(Product)
-            .options(joinedload(Product.category))
-            .order_by(Product.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+    async def list_products(
+        self , limit: int = 50 , offset: int = 0 , category_id: uuid.UUID | None = None
+    ) -> list[Product]:
+        stmt = select(Product).options(joinedload(Product.category))
+        if category_id:
+            stmt = stmt.where(Product.category_id == category_id)
+        stmt = stmt.order_by(Product.created_at.desc()).limit(limit).offset(offset)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
     
+    async def create(self , **kwargs) -> Product:
+        product = Product(**kwargs)
+        self.session.add(product)
+        await self.session.commit()
+        await self.session.refresh(product , attribute_names=["category"])
+        return product
+    
+    async def update(self , product: Product , **kwargs) -> Product:
+        for key , value in kwargs.items():
+            setattr(product , key , value)
+        await self.session.commit()
+        await self.session.refresh(product , attribute_names=["category"])
+        return product
+    
+    async def delete(self , product: Product) -> None:
+        await self.session.delete(product)
+        await self.session.commit()
+            
