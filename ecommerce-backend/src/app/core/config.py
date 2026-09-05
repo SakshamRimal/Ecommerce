@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     #cors
     cors_allowed_origins: list[str] = ["http://localhost:3000"]
     
+    #redis 
+    redis_url: str = "redis://localhost:6379/0"
+    cache_ttl_seconds: int = 300
+    
     @computed_field
     @property
     def database_url(self) -> str:
