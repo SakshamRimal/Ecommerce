@@ -28,8 +28,8 @@ async def create_product(
 @router.get("" ,response_model=list[ProductListResponse])
 async def list_products(
     limit: int = Query(default=20 , le=100 , ge=1),
-    offset: int = Query(deault=0 , ge=0),
-    category_id: uuid.UUID | None = Query(deault = None),
+    offset: int = Query(default=0 , ge=0),
+    category_id: uuid.UUID | None = Query(default = None),
     service: ProductService = Depends(get_product_service)
 ):
     return await service.list_products(limit=limit ,offset=offset , category_id=category_id)
