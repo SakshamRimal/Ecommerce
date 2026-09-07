@@ -6,9 +6,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+
 from app.core.rate_limiter import limiter
-
-
 from app.core.exceptions import AppException
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
@@ -16,6 +15,9 @@ from app.middlewares.request_context import RequestContextMiddleware
 from app.middlewares.security_headers import SecurityHeadersMiddleware
 from app.db.session import engine 
 from app.api.v1.router import api_router
+from app.core.elasticsearch import close_es_client
+from app.core.elasticsearch import get_es_client
+from app.core.search_index import ensure_product_index_exists
 
 configure_logging()
 logger = get_logger("startup")
@@ -27,11 +29,13 @@ async def lifespan(app: FastAPI):
     # Startup tasks
     
     logger.info("app_starting", env=get_settings().app_env)
+    await ensure_product_index_exists(await get_es_client())  # Ensure the product index exists in Elasticsearch
     yield
     
     #shutdown tasks
     logger.info("app_stopping", env=get_settings().app_env)
     await engine.dispose()  # Close the database connection pool
+    await close_es_client()  # Close the Elasticsearch client connection pool
     logger.info("db_connection_pool_closed")
     
 def create_app() -> FastAPI:

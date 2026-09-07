@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     mail_starttls: bool = True
     mail_ssl_tls: bool = False
     
+    #elastic search 
+    elasticsearch_url: str = "http://localhost:9200"
+    elasticsearch_products_index: str = "products"
+    
     @computed_field
     @property
     def database_url(self) -> str:
