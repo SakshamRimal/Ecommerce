@@ -47,6 +47,16 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     cache_ttl_seconds: int = 300
     
+    #smtp 
+    mail_username: str 
+    mail_password: str
+    mail_form: str 
+    mail_from_name: str = "YourShop"
+    mail_server: str
+    mail_port: int = 2525
+    mail_starttls: bool = True
+    mail_ssl_tls: bool = False
+    
     @computed_field
     @property
     def database_url(self) -> str:
