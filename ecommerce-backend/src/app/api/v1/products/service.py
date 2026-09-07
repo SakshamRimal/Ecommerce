@@ -7,6 +7,7 @@ from app.api.v1.products.schema import (
 )
 from app.core.exceptions import NotFoundError
 from app.core.cache import cache_get, cache_set, cache_delete_pattern
+from app.core.job_queue import get_job_queue
 
 
 class ProductService:
@@ -29,6 +30,10 @@ class ProductService:
 
         # Invalidate cached listings — a new product means old cached pages are stale
         await cache_delete_pattern("product:list:*")
+        
+        # enqueue background indexing - API response immediately , doesnt wait for ES 
+        queue = await get_job_queue()
+        await queue.enqueue_job("index_product_task", str(product.id))
 
         return ProductResponse.model_validate(product)
 
