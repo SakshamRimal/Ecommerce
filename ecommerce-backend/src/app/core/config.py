@@ -46,11 +46,12 @@ class Settings(BaseSettings):
     #redis 
     redis_url: str = "redis://localhost:6379/0"
     cache_ttl_seconds: int = 300
+    arq_redis_url: str = "redis://localhost:6379/1"
     
     #smtp 
     mail_username: str 
     mail_password: str
-    mail_form: str 
+    mail_from: str 
     mail_from_name: str = "YourShop"
     mail_server: str
     mail_port: int = 2525
@@ -60,6 +61,8 @@ class Settings(BaseSettings):
     #elastic search 
     elasticsearch_url: str = "http://localhost:9200"
     elasticsearch_products_index: str = "products"
+    
+    
     
     @computed_field
     @property
