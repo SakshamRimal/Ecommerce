@@ -6,8 +6,7 @@ settings = get_settings()
 _es_client: AsyncElasticsearch | None = None
 
 
-async def get_es_client() -> AsyncElasticsearch:
-    """Retrieves or initializes the global AsyncElasticsearch client."""
+def get_es_client() -> AsyncElasticsearch:
     global _es_client
     if _es_client is None:
         _es_client = AsyncElasticsearch(hosts=[settings.elasticsearch_url])
@@ -15,7 +14,6 @@ async def get_es_client() -> AsyncElasticsearch:
 
 
 async def close_es_client() -> None:
-    """Closes the global AsyncElasticsearch client connection pool."""
     global _es_client
     if _es_client is not None:
         await _es_client.close()
