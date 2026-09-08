@@ -57,11 +57,7 @@ async def delete_product_from_index_task(ctx , product_id: str) -> None:
         logger.info(f"Product with ID {product_id} deleted from Elasticsearch index successfully.")
     except Exception as e:
         logger.warning(f"Failed to delete product with ID {product_id} from Elasticsearch index. Error: {e}")
-    
-    
-    
-    
-    
+ 
     
 async def send_order_confirmation_task(ctx , order_id: str , user_email: str , user_full_name: str) -> None:
     """Background job: send the order confirmation email without blocking the main thread."""
