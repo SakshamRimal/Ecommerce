@@ -1,19 +1,22 @@
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.api.v1.orders.repository import OrderRepository
 from app.api.v1.orders.schema import OrderResponse, CreateOrderRequest
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.cart import Cart, CartItem
 from app.core.exceptions import ConflictError, NotFoundError
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from app.core.job_queue import get_job_queue
+
 
 
 class OrderService:
-    def __init__(self, session: AsyncSession, repository: OrderRepository):
+    def __init__(self, session: AsyncSession, repository: OrderRepository , current_user):
         self.session = session  # needed here to control the transaction boundary directly
         self.repository = repository
+        self.current_user = current_user 
 
     async def create_order_from_cart(
         self, user_id: uuid.UUID, data: CreateOrderRequest
@@ -87,6 +90,14 @@ class OrderService:
         # Single commit — everything above succeeds together, or...
         await self.session.commit()
         await self.session.refresh(order, attribute_names=["items"])
+        
+        queue = await get_job_queue()
+        await queue.enqueue_job(
+            "send_order_confirmation_task",
+            str(order.id),
+            self.current_user.email,
+            self.current_user.full_name
+        )
 
         return OrderResponse.model_validate(order)
         # ...if ANY exception was raised above, get_db_session's except block

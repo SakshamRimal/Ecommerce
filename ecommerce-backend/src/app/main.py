@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.rate_limiter import limiter
 from app.core.exceptions import AppException
@@ -69,7 +70,10 @@ def create_app() -> FastAPI:
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
-)
+    )
+    
+    Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+    
     return app
 
 app = create_app()
