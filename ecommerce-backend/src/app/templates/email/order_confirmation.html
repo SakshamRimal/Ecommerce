@@ -3,37 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Order Confirmation</title>
 </head>
-<body style="font-family: Airal, sans-serif; color: #333;">
-    <h2>Thanks for your order, {{full_name }}!</h2>
-    <p>Your order <strong>#{{ order_id}}</strong> has been successfully placed. We are excited to get your items to you as soon as possible.</p>
+<body style="margin: 0; padding: 0; background-color: #f4f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f7fa;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
 
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-            <tr style="border-bottom: 2px solid #ddd; text-align: left;">
-                <th style="padding: 8px;">Product</th>
-                <th style="padding: 8px;">Qty</th>
-                <th style="padding: 8px;">Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in order_items %}
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 8px;">{{ item.product_name }}</td>
-                <td style="padding: 8px;">{{ item.quantity }}</td>
-                <td style="padding: 8px;">${{ item.price }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; border-radius: 12px 12px 0 0; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">Commercify</h1>
+                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Order Confirmation</p>
+                        </td>
+                    </tr>
+
+                    <!-- Success Banner -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 30px 40px 0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 20px 0;">
+                                        <div style="width: 60px; height: 60px; background-color: #e8f5e9; border-radius: 50%; line-height: 60px; text-align: center; font-size: 28px;">&#10003;</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center">
+                                        <h2 style="margin: 0 0 8px; color: #1a1a2e; font-size: 22px; font-weight: 600;">Thank you, {{ full_name }}!</h2>
+                                        <p style="margin: 0; color: #6b7280; font-size: 15px; line-height: 1.6;">Your order <strong style="color: #1a1a2e;">#{{ order_id }}</strong> has been placed successfully.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Order Items -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 25px 40px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                                <tr>
+                                    <td style="background-color: #f9fafb; padding: 12px 20px; border-bottom: 1px solid #e5e7eb;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Product</td>
+                                                <td align="center" style="color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; width: 60px;">Qty</td>
+                                                <td align="right" style="color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; width: 80px;">Price</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% for item in order_items %}
+                                <tr>
+                                    <td style="padding: 14px 20px; border-bottom: 1px solid #f3f4f6;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #1a1a2e; font-size: 14px; font-weight: 500;">{{ item.product_name }}</td>
+                                                <td align="center" style="color: #6b7280; font-size: 14px; width: 60px;">{{ item.quantity }}</td>
+                                                <td align="right" style="color: #1a1a2e; font-size: 14px; font-weight: 500; width: 80px;">${{ item.unit_price }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Total -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 0 40px 25px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="border-top: 2px solid #e5e7eb; padding-top: 15px;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #1a1a2e; font-size: 16px; font-weight: 600;">Total</td>
+                                                <td align="right" style="color: #667eea; font-size: 20px; font-weight: 700;">${{ total_amount }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- CTA Button -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 0 40px 30px;" align="center">
+                            <table role="presentation" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;">
+                                        <a href="#" style="display: inline-block; padding: 14px 40px; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; letter-spacing: 0.5px;">Track Order</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f9fafb; padding: 25px 40px; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center">
+                                        <p style="margin: 0 0 8px; color: #9ca3af; font-size: 13px; line-height: 1.5;">Questions? Contact us at <a href="mailto:support@commercify.com" style="color: #667eea; text-decoration: none;">support@commercify.com</a></p>
+                                        <p style="margin: 0; color: #d1d5db; font-size: 11px;">&copy; 2026 Commercify. All rights reserved.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
     </table>
-
-    <p style="margin-top: 20px;">Total: <strong>${{ total_amount }}</strong>
-    </p>
-
-    <p style="color: #777; margin-top: 40px;">If you have any questions about your order, feel free to contact our support team.
-
-    </p>
-    
 </body>
 </html>
