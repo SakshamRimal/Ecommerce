@@ -72,11 +72,11 @@ async def send_order_confirmation_task(ctx , order_id: str , user_email: str , u
         
         items = [
             {
-                "product_name": item.product.name,
+                "product_name": item.product_name,
                 "quantity": item.quantity,
                 "unit_price": str(item.unit_price),
             }
-               for item in order.items
+            for item in order.items
         ]
         
         try:

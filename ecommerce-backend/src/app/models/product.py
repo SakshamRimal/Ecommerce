@@ -1,5 +1,5 @@
 import uuid 
-from sqlalchemy import Column, Index, String, Float, Integer, ForeignKey
+from sqlalchemy import Index, String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlmodel import Numeric
 

@@ -26,7 +26,7 @@ async def send_order_confirmation_email(
 ) -> None:
     template = jinja_env.get_template("order_confirmation.html")
     html_content = template.render(
-        full_name=full_name , order_id=order_id , items=items , total_amount=total_amount
+        full_name=full_name, order_id=order_id, order_items=items, total_amount=total_amount
     )
     
     message = MessageSchema(
