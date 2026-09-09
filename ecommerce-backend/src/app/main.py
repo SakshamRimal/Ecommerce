@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-import structlog
 from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
@@ -12,7 +11,7 @@ from app.core.rate_limiter import limiter
 from app.core.exceptions import AppException
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
-from app.core.job_queue import get_job_queue, close_job_queue
+from app.core.job_queue import close_job_queue
 from app.middlewares.request_context import RequestContextMiddleware
 from app.middlewares.security_headers import SecurityHeadersMiddleware
 from app.db.session import engine 
