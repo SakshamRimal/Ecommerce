@@ -256,7 +256,7 @@ ok "Email job enqueued — check Mailtrap for confirmation"
 # ELASTICSEARCH — VERIFY DELETION
 # ─────────────────────────────────────────────
 echo -e "\n=== 31. Delete Product (triggers ES delete job) ==="
-curl -s -o /dev/null -w "Status: %{http_code}\n" -X DELETE $BASE/products/$PRODUCT_ID \
+curl -s -o /dev/null -w "Status: %{http_code}\n" -X DELETE $BASE/products/$PRODUCT2_ID \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ok "Product deleted (ES delete job enqueued)"
 
