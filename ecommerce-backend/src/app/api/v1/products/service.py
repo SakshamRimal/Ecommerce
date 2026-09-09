@@ -95,3 +95,7 @@ class ProductService:
 
         # Deleted product must not keep showing up in cached listings
         await cache_delete_pattern("product:list:*")
+
+        # Remove from Elasticsearch index
+        queue = await get_job_queue()
+        await queue.enqueue_job("delete_product_from_index_task", str(product.id))

@@ -1,5 +1,5 @@
 import uuid 
-from fastapi import APIRouter , Depends , Query , Path
+from fastapi import APIRouter , Depends , Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db_session
@@ -41,7 +41,7 @@ async def get_product(
 ):
     return await service.get_by_id(product_id)
 
-@router.patch("/{prodcut_id}" , response_model=ProductResponse , dependencies=[Depends(require_admin)])
+@router.patch("/{product_id}", response_model=ProductResponse, dependencies=[Depends(require_admin)])
 async def update_product(
     product_id: uuid.UUID,
     data: ProductUpdateRequest,

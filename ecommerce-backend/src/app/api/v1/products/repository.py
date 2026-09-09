@@ -36,11 +36,12 @@ class ProductRepository:
         await self.session.refresh(product , attribute_names=["category"])
         return product
     
-    async def update(self , product: Product , **kwargs) -> Product:
-        for key , value in kwargs.items():
-            setattr(product , key , value)
+    async def update(self, product: Product, **kwargs) -> Product:
+        for key, value in kwargs.items():
+            if value is not None:
+                setattr(product, key, value)
         await self.session.commit()
-        await self.session.refresh(product , attribute_names=["category"])
+        await self.session.refresh(product, attribute_names=["category"])
         return product
     
     async def delete(self , product: Product) -> None:
