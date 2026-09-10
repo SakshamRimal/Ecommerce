@@ -19,6 +19,7 @@ from app.api.v1.router import api_router
 from app.core.elasticsearch import close_es_client
 from app.core.elasticsearch import get_es_client
 from app.core.search_index import ensure_product_index_exists
+from app.core.tracing import configure_tracing
 
 configure_logging()
 logger = get_logger("startup")
@@ -72,6 +73,8 @@ def create_app() -> FastAPI:
     )
     
     Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+    
+    configure_tracing(app, engine)
     
     return app
 

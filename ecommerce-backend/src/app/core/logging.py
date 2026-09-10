@@ -4,6 +4,7 @@ Strucuted Logging module for the application.
 import logging 
 import sys 
 import structlog
+from opentelemetry import trace
 
 from app.core.config import get_settings 
 
@@ -38,6 +39,13 @@ def configure_logging() -> None:
 def get_logger(name: str = "app"):
     return structlog.get_logger(name)
 
+
+
+def add_trace_context(logger, method_name, event_dict):
+    span = trace.get_current_span()
+    if span and span.get_span_context().is_valid:
+        event_dict["trace_id"] = format(span.get_span_context().trace_id, "032x")
+    return event_dict
         
 """
 Why structlog? It binds context (like request_id) automatically to every log line without you passing it manually everywhere. This is what makes distributed tracing/debugging possible later.

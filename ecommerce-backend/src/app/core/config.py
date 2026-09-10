@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     elasticsearch_url: str = "http://localhost:9200"
     elasticsearch_products_index: str = "products"
     
+    #opentelemetry
+    otel_exporter_endpoint: str = "localhost:4317"
+    
     
     
     @computed_field
