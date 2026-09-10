@@ -16,5 +16,8 @@ def get_es_client() -> AsyncElasticsearch:
 async def close_es_client() -> None:
     global _es_client
     if _es_client is not None:
-        await _es_client.close()
+        try:
+            await _es_client.close()
+        except Exception:
+            pass
         _es_client = None

@@ -22,9 +22,17 @@ PRODUCT_INDEX_MAPPING = {
 
 async def ensure_product_index_exists(es_client) -> None:
     from app.core.config import get_settings
+    from app.core.logging import get_logger
+    logger = get_logger("search_index")
     settings = get_settings()
     index_name = settings.elasticsearch_products_index
-    
-    exists = await es_client.indices.exists(index=index_name)
-    if not exists:
-        await es_client.indices.create(index=index_name, body=PRODUCT_INDEX_MAPPING)
+
+    try:
+        exists = await es_client.indices.exists(index=index_name)
+        if not exists:
+            await es_client.indices.create(index=index_name, body=PRODUCT_INDEX_MAPPING)
+            logger.info("elasticsearch_index_created", index=index_name)
+        else:
+            logger.info("elasticsearch_index_exists", index=index_name)
+    except Exception as e:
+        logger.warning("elasticsearch_unavailable", error=str(e))
