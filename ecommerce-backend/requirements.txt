@@ -23,7 +23,7 @@ psycopg2-binary==2.9.10          # sync driver, needed by Alembic offline migrat
 # =========================================================
 # CACHING
 # =========================================================
-redis==5.2.1
+redis>=5.2.1
 hiredis==3.1.0                   # C parser, faster redis client
 
 # =========================================================
@@ -43,15 +43,15 @@ slowapi==0.1.9                     # rate limiting middleware
 # =========================================================
 # BACKGROUND JOBS / ASYNC TASKS
 # =========================================================
-arq==0.26.3                        # lightweight async task queue (redis-based)
+arq==0.28.0                        # lightweight async task queue (redis-based)
 # celery==5.5.1                    # alternative — uncomment if you prefer Celery over arq
 # flower==2.0.1                    # celery monitoring UI (only if using celery)
 
 # =========================================================
 # TRANSACTIONAL EMAILS
 # =========================================================
-fastapi-mail
-jinja2==3.1.5                      # email templating
+fastapi-mail>=1.6.3
+jinja2>=3.1.6                      # email templating
 
 # =========================================================
 # LOGGING, MONITORING & OBSERVABILITY
