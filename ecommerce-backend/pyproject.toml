@@ -43,3 +43,8 @@ dependencies = [
     "structlog==26.1.0",
     "uvicorn[standard]==0.52.1",
 ]
+
+[dependency-groups]
+dev = [
+    "locust>=2.46.5",
+]
