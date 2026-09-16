@@ -29,7 +29,7 @@ async def register(
     return await service.register(data)
 
 @router.post("/login" , response_model=TokenResponse)
-@limiter.limit("5/minute")
+@limiter.limit("30/minute")
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
