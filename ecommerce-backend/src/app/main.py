@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from prometheus_fastapi_instrumentator import Instrumentator
+from alembic.config import Config
+from alembic import command
 
 from app.core.rate_limiter import limiter
 from app.core.exceptions import AppException
@@ -31,6 +33,15 @@ async def lifespan(app: FastAPI):
     # Startup tasks
     
     logger.info("app_starting", env=get_settings().app_env)
+
+    # Auto-run migrations
+    try:
+        alembic_cfg = Config("/app/alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        logger.info("migrations_applied")
+    except Exception as e:
+        logger.warning("migrations_failed", error=str(e))
+
     await ensure_product_index_exists(get_es_client())  # Ensure the product index exists in Elasticsearch
     yield
     

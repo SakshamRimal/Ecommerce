@@ -5,7 +5,6 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
 from app.core.config import get_settings
@@ -37,5 +36,7 @@ def configure_tracing(app, engine) -> None:
         trace.set_tracer_provider(provider)
         logger.warning("opentelemetry_skipped", endpoint=settings.otel_exporter_endpoint, reason="unreachable")
 
-    FastAPIInstrumentor.instrument_app(app)
-    SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
+    try:
+        SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
+    except Exception as e:
+        logger.warning("sqlalchemy_instrumentation_skipped", error=str(e))
