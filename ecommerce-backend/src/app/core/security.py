@@ -3,18 +3,31 @@ from typing import Any
 
 from jose import jwt , JWTError
 from passlib.context import CryptContext
-
+import asyncio
+from functools import partial
 from app.core.config import get_settings
 
 settings = get_settings()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+import asyncio
+from functools import partial
+
 def hash_password(plain_password: str) -> str:
     return pwd_context.hash(plain_password)
 
-def verify_password(plain_password: str , hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
+async def hash_password_async(plain_password: str) -> str:
+    """Run bcrypt hashing in a thread pool so it doesn't block the event loop."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, hash_password, plain_password)
+
+async def verify_password_async(plain_password: str, hashed_password: str) -> bool:
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, verify_password, plain_password, hashed_password)
 
 def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)

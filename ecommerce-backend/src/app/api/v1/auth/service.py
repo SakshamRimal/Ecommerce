@@ -1,6 +1,6 @@
 from app.api.v1.auth.repository import UserRepository
 from app.api.v1.auth.schema import UserRegisterRequest , TokenResponse , UserResponse
-from app.core.security import decode_token, hash_password , create_access_token , create_refresh_token , verify_password
+from app.core.security import decode_token, hash_password , create_access_token , create_refresh_token, hash_password_async , verify_password, verify_password_async
 from app.core.exceptions import ConflictError , UnauthorizedError
 
 class AuthService:
@@ -13,7 +13,7 @@ class AuthService:
         if existing:
             raise ConflictError("Email already exists")
         
-        hash = hash_password(data.password)
+        hash = await hash_password_async(data.password)
         user = await self.repository.create(data.email , hash , data.full_name)
         
         return UserResponse.model_validate(user)
@@ -21,7 +21,7 @@ class AuthService:
     async def login(self , email: str , password: str) -> TokenResponse:
         
         user = await self.repository.get_by_email(email)
-        if not user or not verify_password(password , user.hashed_password):
+        if not user or not await verify_password_async(password , user.hashed_password):
             raise UnauthorizedError("Invalid email or password")
         if not user.is_active:
             raise UnauthorizedError("User is inactive")
