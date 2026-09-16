@@ -8,8 +8,8 @@ class UserRepository:
         self.session = session
         
     async def get_by_email(self , email:str) -> User | None:
-        stms = select(User).where(User.email == email)
-        result = await self.session.execute(stms)
+        stmt = select(User).where(User.email == email)
+        result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
     
     async def create(self , email:str , hashed_password:str , full_name:str) -> User:
