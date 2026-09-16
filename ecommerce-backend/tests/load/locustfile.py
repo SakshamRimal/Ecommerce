@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between, events
 
 
 class ShopperUser(HttpUser):
@@ -9,9 +9,15 @@ class ShopperUser(HttpUser):
         response = self.client.post(
             "/api/v1/auth/login",
             data={"username": "test@example.com", "password": "supersecret123"},
+            name="/api/v1/auth/login",
         )
-        self.token = response.json().get("access_token", "")
-        self.headers = {"Authorization": f"Bearer {self.token}"}
+        if response.status_code == 200:
+            self.token = response.json().get("access_token", "")
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+        else:
+            self.token = ""
+            self.headers = {}
+            print(f"Login failed ({response.status_code}): {response.text}")
 
     @task(5)
     def browse_products(self):
