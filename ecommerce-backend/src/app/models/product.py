@@ -23,3 +23,5 @@ class Product(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
     cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product")
     
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    

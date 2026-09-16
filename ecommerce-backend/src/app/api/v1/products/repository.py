@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.product import Product
+from app.core.exceptions import ConflictError
 
 
 class ProductRepository:
@@ -36,10 +37,20 @@ class ProductRepository:
         await self.session.refresh(product , attribute_names=["category"])
         return product
     
-    async def update(self, product: Product, **kwargs) -> Product:
+    async def update(self, product: Product,expected_version: int , **kwargs ) -> Product:
         for key, value in kwargs.items():
             if value is not None:
                 setattr(product, key, value)
+                
+        stmt = (
+        select(Product)
+        .where(Product.id == product.id, Product.version == expected_version)
+    )
+        result = await self.session.execute(stmt)
+        if result.scalar_one_or_none() is None:
+            raise ConflictError("Product has been modified by another transaction")
+        
+        product.version += 1  # Increment the version for optimistic locking
         await self.session.commit()
         await self.session.refresh(product, attribute_names=["category"])
         return product
