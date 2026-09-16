@@ -69,6 +69,7 @@ async def send_order_confirmation_task(ctx , order_id: str , user_email: str , u
         
         if not order:
             logger.warning(f"Order with ID {order_id} not found. Email not sent.")
+            return
         
         items = [
             {
