@@ -74,6 +74,7 @@ class ProductService:
 
         updated = await self.repository.update(
             product,
+            expected_version=product.version,
             name=data.name,
             description=data.description,
             price=data.price,
