@@ -21,14 +21,14 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         )
         start = time.perf_counter()
         response = await call_next(request)
-        duration = round((time.perf_counter() - start))
+        duration_ms = round((time.perf_counter() - start) * 1000)
         response.headers["X-Request-ID"] = request_id
         
         logger = structlog.get_logger("http")
         logger.info(
             "request_completed",
             status_code=response.status_code,
-            duration=duration,
+            duration_ms=duration_ms,
         )
         return response
 
