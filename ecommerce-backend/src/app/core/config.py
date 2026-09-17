@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     #opentelemetry
     otel_exporter_endpoint: str = "localhost:4317"
     
+    #openai 
+    openai_api_key: str 
+    openai_model: str = "gpt-4o-mini"
+    openai_max_tokens: int = 800
+    chat_max_history_messages: int = 20
     
     
     @computed_field
