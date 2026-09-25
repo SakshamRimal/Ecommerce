@@ -21,8 +21,6 @@ def get_chat_service(session: AsyncSession = Depends(get_db_session)) -> ChatSer
 
 
 @router.post("", response_model=ChatResponse)
-
-@router.post("", response_model=ChatResponse)
 @limiter.limit("10/minute")
 async def chat(
     data: ChatRequest,

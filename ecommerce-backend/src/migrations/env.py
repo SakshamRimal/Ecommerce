@@ -8,7 +8,7 @@ from alembic import context
 
 from app.core.config import get_settings
 from app.db.base import Base
-from app.models import User, Category, Product, Cart, CartItem  # noqa: F401 — registers models
+from app.models import User, Category, Product, Cart, CartItem, Order, OrderItem, ChatSession, ChatMessage  # noqa: F401 — registers models
 
 config = context.config
 settings = get_settings()

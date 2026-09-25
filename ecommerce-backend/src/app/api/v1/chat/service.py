@@ -1,7 +1,7 @@
 import structlog
 from openai import AsyncOpenAI
 from app.core.config import get_settings
-from app.ai.tools import TOOL_DEFINATIONS 
+from app.ai.tools import TOOL_DEFINITIONS
 from app.ai.tool_executor import ToolExecutor
 from app.api.v1.chat.repository import ChatRepository
 from app.models.chat import MessageRole
