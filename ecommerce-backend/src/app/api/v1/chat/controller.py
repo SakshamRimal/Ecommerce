@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends , Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db_session
@@ -29,6 +29,7 @@ async def chat(
     current_user: User = Depends(get_current_user),
     service: ChatService = Depends(get_chat_service),
     session=Depends(get_db_session),
+    request: Request = None,
 ):
     repository = ChatRepository(session)
     chat_session = await repository.get_or_create_session(current_user.id)

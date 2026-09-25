@@ -1,5 +1,5 @@
 import uuid 
-from sqlalchemy import ForeignKey , String , Text , Enum as SAEnum
+from sqlalchemy import ForeignKey , Text , Enum as SAEnum
 from sqlalchemy.orm import Mapped , mapped_column , relationship
 from enum import Enum as PyEnum
 
@@ -26,6 +26,6 @@ class ChatMessage(Base , UUIDPrimaryKeyMixin , TimestampMixin):
     session_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("chat_sessions.id" , ondelete="CASCADE") , nullable=False , index=True
     )
-    role: Mapped[MessageRole] = mapped_column(SAEnum(MessageRole) , name="message_role" , nullable=False)
+    role: Mapped[MessageRole] = mapped_column(SAEnum(MessageRole, name="message_role"), nullable=False)
     content: Mapped[str] = mapped_column(Text , nullable=False)
     session: Mapped["ChatSession"] = relationship(back_populates="messages")

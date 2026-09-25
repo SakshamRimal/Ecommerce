@@ -1,4 +1,4 @@
-TOOL_DEFINATIONS = [
+TOOL_DEFINITIONS = [
     {
         "type":"function",
         "function":{
