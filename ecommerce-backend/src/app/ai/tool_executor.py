@@ -40,4 +40,17 @@ class ToolExecutor:
                 return json.dumps({"error": "Product not found"})
             return json.dumps({"product_id": str(product.id), "stock_quantity": product.stock_quantity})
         
+        elif tool_name == "semantic_search_products":
+            results = await self.search_service.semantic_search_products(
+                query=arguments["query"], limit=5
+            )
+            return json.dumps({
+                "results": [
+                    {"id": str(r.id), "name": r.name, "price": str(r.price), "stock": r.stock_quantity}
+                    for r in results
+                ]
+            })
+                    
         return json.dumps({"error": f"Unknown tool: {tool_name}"})
+    
+    

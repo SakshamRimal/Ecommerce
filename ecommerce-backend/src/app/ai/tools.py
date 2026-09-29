@@ -53,4 +53,18 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "semantic_search_products",
+            "description": "Search the product catalog by MEANING/CONCEPT rather than exact keywords. Use this when the user describes a need or use-case rather than a specific product name (e.g., 'something for hiking in the rain' or 'a gift for someone who loves coffee').",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "A natural-language description of what the user wants"},
+                },
+                "required": ["query"],
+        },
+    },
+},
 ]
