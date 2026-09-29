@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgres:16
+    container_name: pg-ecommerce
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
