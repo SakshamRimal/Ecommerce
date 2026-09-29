@@ -35,11 +35,12 @@ services:
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+        - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4317:4317"
-      - "4318:4318"
+      - "0.0.0.0:4317:4317"
+      - "0.0.0.0:4318:4318"
     restart: unless-stopped
+
 
   api:
     build: .
