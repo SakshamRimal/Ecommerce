@@ -22,7 +22,9 @@ class Product(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     category: Mapped["Category"] = relationship(back_populates="products")
 
-    cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product")
+    cart_items: Mapped[list["CartItem"]] = relationship(
+        back_populates="product", cascade="all, delete-orphan"
+    )
     
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     
