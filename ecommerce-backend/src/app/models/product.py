@@ -2,6 +2,7 @@ import uuid
 from sqlalchemy import Index, String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlmodel import Numeric
+from pgvector.sqlalchemy import VECTOR
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
@@ -24,4 +25,6 @@ class Product(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product")
     
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    
+    embedding: Mapped[list[float] | None] = mapped_column(VECTOR(1536), nullable=True)  # Assuming 768 dimensions for embeddings
     
