@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.db.base import Base
 from app.models import User, Category, Product, Cart, CartItem, Order, OrderItem, ChatSession, ChatMessage  # noqa: F401 — registers models
 
+
 config = context.config
 settings = get_settings()
 config.set_main_option("sqlalchemy.url", settings.database_url)

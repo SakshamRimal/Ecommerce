@@ -24,6 +24,7 @@ dependencies = [
     "opentelemetry-instrumentation-sqlalchemy==0.51b0",
     "opentelemetry-sdk==1.30.0",
     "passlib[bcrypt]==1.7.4",
+    "pgvector>=0.5.0",
     "prometheus-fastapi-instrumentator==8.1.0",
     "psycopg2-binary==2.9.10",
     "pydantic==2.13.4",
@@ -52,3 +53,8 @@ dev = [
 
 [project.scripts]
 ecommerce = "app.cli:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
