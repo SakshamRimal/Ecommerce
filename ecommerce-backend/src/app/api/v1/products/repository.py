@@ -59,3 +59,13 @@ class ProductRepository:
         await self.session.delete(product)
         await self.session.commit()
             
+    async def semantic_search(self , embedding: list[float] , limit: int = 10) -> list[Product]:
+        stmt = (
+            select(Product)
+            .options(joinedload(Product.category))
+            .where(Product.embedding.is_not(None))
+            .order_by(Product.embedding.cosine_distance(embedding))
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

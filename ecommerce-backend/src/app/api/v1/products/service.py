@@ -34,6 +34,7 @@ class ProductService:
         # enqueue background indexing - API response immediately , doesnt wait for ES 
         queue = await get_job_queue()
         await queue.enqueue_job("index_product_task", str(product.id))
+        await queue.enqueue_job("generate_product_embedding_task", str(product.id))
 
         return ProductResponse.model_validate(product)
 

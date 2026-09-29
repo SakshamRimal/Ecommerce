@@ -1,11 +1,18 @@
 from app.core.elasticsearch import get_es_client
 from app.core.config import get_settings
 from app.api.v1.search.schema import SearchResponse, ProductSearchResult
+from app.ai.embeddings import generate_embedding
+from app.api.v1.products.repository import ProductRepository
+from app.api.v1.products.schema import ProductListResponse
 
 settings = get_settings()
 
 
 class SearchService:
+    
+    def __init__(self , product_repository: ProductRepository | None = None):
+        self.product_repository = product_repository
+        
     async def search_products(self, query: str, limit: int = 20) -> SearchResponse:
         es_client = get_es_client()
 
@@ -41,3 +48,8 @@ class SearchService:
         return SearchResponse(
             query=query, total=response["hits"]["total"]["value"], results=results
         )
+    
+    async def semantic_search_products(self , query: str , limit: int = 10) -> list[ProductListResponse]:
+        query_embedding = await generate_embedding(query)
+        products = await self.product_repository.semantic_search(embedding=query_embedding , limit=limit)
+        return [ProductListResponse.model_validate(product) for product in products]
