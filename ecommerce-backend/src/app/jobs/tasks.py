@@ -8,6 +8,7 @@ from app.models.product import Product
 from app.core.email import send_order_confirmation_email
 from app.models.order import Order
 from app.core.elasticsearch import get_es_client
+from app.ai.embeddings import generate_embedding, build_product_embedding_text 
 
 
 
@@ -91,4 +92,23 @@ async def send_order_confirmation_task(ctx , order_id: str , user_email: str , u
             logger.info(f"Order confirmation email sent to {user_email} for order {order_id}.")
         except Exception as e:
             logger.error(f"Failed to send order confirmation email to {user_email} for order {order_id}. Error: {e}")
+        
+
+async def generate_product_embedding_task(ctx , product_id: str) -> None:
+    """Background job: compute and store a product's embedding vector"""
+    async with AsyncSessionFactory() as session:
+        stmt = select(Product).options(joinedload(Product.category)).where(Product.id == product_id)
+        result = await session.execute(stmt)
+        product = result.scalar_one_or_none()
+        
+        if not product:
+            logger.warning(f"Product with ID {product_id} not found. Skipping embedding generation.")
+            return
+        
+        text = build_product_embedding_text(product.name, product.description, product.category.name)
+        embedding = await generate_embedding(text)
+        
+        product.embedding = embedding
+        await session.commit()
+        logger.info(f"Embedding generated and stored for product with ID {product_id}.")
         
