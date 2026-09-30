@@ -16,7 +16,7 @@ async def cache_get(key: str) -> dict | list | None:
 
 async def cache_set(key:str , value , ttl:int | None = None) -> None:
     redis = get_redis()
-    return redis.set(key , json.dumps(value) , ex=ttl or settings.cache_ttl_seconds)
+    await redis.set(key , json.dumps(value) , ex=ttl or settings.cache_ttl_seconds)
 
 async def cache_delete_pattern(pattern: str) -> None:
     """Ivalidate all key matching a pattern """

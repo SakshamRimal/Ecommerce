@@ -5,7 +5,7 @@ from pydantic import BaseModel
 class ProductSearchResult(BaseModel):
     id: uuid.UUID
     name: str 
-    description: str
+    description: str | None = None
     category_name: str 
     price: Decimal
     stock_quantity: int

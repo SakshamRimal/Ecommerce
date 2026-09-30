@@ -14,6 +14,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     full_name: str
     is_active: bool
+    role: str
 
 class TokenResponse(BaseModel):
     access_token: str
