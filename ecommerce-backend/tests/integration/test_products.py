@@ -1,5 +1,4 @@
 import uuid
-import pytest
 from unittest.mock import AsyncMock
 from httpx import AsyncClient
 from app.main import app
