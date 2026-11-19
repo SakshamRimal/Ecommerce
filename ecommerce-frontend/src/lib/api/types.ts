@@ -96,6 +96,7 @@ export interface SearchResult {
   id: UUID;
   name: string;
   description: string | null;
+  image_url?: string | null;
   category_name: string;
   price: Money;
   stock_quantity: number;
