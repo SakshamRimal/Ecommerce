@@ -15,3 +15,5 @@ class SearchResponse(BaseModel):
     query: str 
     total: int 
     results : list[ProductSearchResult]
+    limit: int = 20
+    offset: int = 0
