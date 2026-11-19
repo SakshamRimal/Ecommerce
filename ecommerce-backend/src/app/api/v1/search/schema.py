@@ -6,6 +6,7 @@ class ProductSearchResult(BaseModel):
     id: uuid.UUID
     name: str 
     description: str | None = None
+    image_url: str | None = None
     category_name: str 
     price: Decimal
     stock_quantity: int
