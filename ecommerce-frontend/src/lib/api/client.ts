@@ -137,7 +137,9 @@ export async function request<T>(
 
   let serializedBody: BodyInit | undefined;
   if (body !== undefined) {
-    if (formEncoded && body instanceof URLSearchParams) {
+    if (typeof FormData !== "undefined" && body instanceof FormData) {
+      serializedBody = body;
+    } else if (formEncoded && body instanceof URLSearchParams) {
       headers.set("Content-Type", "application/x-www-form-urlencoded");
       serializedBody = body.toString();
     } else if (body instanceof URLSearchParams) {
@@ -334,6 +336,23 @@ export const api = {
       }
       return request<void>(`/products/${id}`, {
         method: "DELETE",
+      });
+    },
+
+    uploadImage: async (
+      file: File,
+    ): Promise<{
+      image_url: string;
+      bucket: string;
+      object_key: string;
+      content_type: string;
+      size_bytes: number;
+    }> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return request("/products/upload-image", {
+        method: "POST",
+        body: formData,
       });
     },
   },
