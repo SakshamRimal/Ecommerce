@@ -262,7 +262,7 @@ export function SearchPage() {
 
             <div>
               <label className="mb-1 block text-xs font-medium text-[var(--muted-fg)]">
-                Min Price (USD)
+                Min Price (NRs)
               </label>
               <input
                 type="text"
@@ -276,7 +276,7 @@ export function SearchPage() {
 
             <div>
               <label className="mb-1 block text-xs font-medium text-[var(--muted-fg)]">
-                Max Price (USD)
+                Max Price (NRs)
               </label>
               <input
                 type="text"
