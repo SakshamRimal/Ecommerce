@@ -28,9 +28,9 @@ describe("money utilities (integer-cents decimal string arithmetic)", () => {
     expect(multiplyMoney("19.99", 3)).toBe("59.97");
   });
 
-  it("formats money for display using Intl.NumberFormat", () => {
-    expect(formatMoney("249.00")).toBe("$249.00");
-    expect(formatMoney("19.99")).toBe("$19.99");
+  it("formats money for display using NRs currency prefix", () => {
+    expect(formatMoney("249.00")).toBe("NRs 249.00");
+    expect(formatMoney("19.99")).toBe("NRs 19.99");
   });
 
   it("validates user money input strings", () => {
