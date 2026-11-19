@@ -7,7 +7,11 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.api.v1.cart.repository import CartRepository
 from app.api.v1.cart.service import CartService
-from app.api.v1.cart.schema import CartItemRequest, CartResponse
+from app.api.v1.cart.schema import (
+    CartItemRequest,
+    CartItemUpdateRequest,
+    CartResponse,
+)
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 
@@ -36,7 +40,7 @@ async def add_item(
 @router.patch("/items/{product_id}", response_model=CartResponse)
 async def update_item(
     product_id: uuid.UUID,
-    data: CartItemRequest,
+    data: CartItemUpdateRequest,
     current_user: User = Depends(get_current_user),
     service: CartService = Depends(get_cart_service),
 ):
