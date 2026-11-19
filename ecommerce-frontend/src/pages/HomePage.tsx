@@ -77,7 +77,7 @@ export function HomePage() {
                   size="lg"
                   onClick={() =>
                     openChatWithPrompt(
-                      "Help me build a clean, productive home office setup under $750."
+                      "Help me build a clean, productive home office setup under NRs 750."
                     )
                   }
                 >
@@ -149,7 +149,7 @@ export function HomePage() {
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       "Headphones for deep focus",
-                      "Gifts for a remote engineer under $200",
+                      "Gifts for a remote engineer under NRs 200",
                       "Compare mechanical keyboard & ergonomic mouse",
                     ].map((prompt) => (
                       <button
