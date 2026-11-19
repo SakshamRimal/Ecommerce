@@ -14,7 +14,17 @@ class CategoryCreateRequest(BaseModel):
         return v 
     
 class CategoryUpdateRequest(BaseModel):
-    name: str | None = Field(default=None , min_length=2 , max_length=100)
+    name: str | None = Field(default=None, min_length=2, max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def name_must_be_clean(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v = v.strip()
+        if not v:
+            raise ValueError("Name must not be empty or whitespace")
+        return v
     
 class CategoryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
