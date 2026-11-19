@@ -202,3 +202,37 @@ class TestSearchAndChatEndpoints:
             app.dependency_overrides.pop(get_current_user, None)
             app.dependency_overrides.pop(get_chat_service, None)
 
+    async def test_product_image_upload_to_minio_endpoint(self, client: AsyncClient):
+        from unittest.mock import patch
+        from app.models.user import User, UserRole
+
+        admin = User(
+            id=uuid.uuid4(),
+            email="admin@example.com",
+            hashed_password="h",
+            full_name="Admin",
+            is_active=True,
+            role=UserRole.ADMIN,
+        )
+        app.dependency_overrides[get_current_user] = lambda: admin
+        try:
+            with patch(
+                "app.api.v1.products.controller.upload_image_to_minio",
+                new_callable=AsyncMock,
+                return_value=(
+                    "http://localhost:9000/product-images/sample123.png",
+                    "product-images",
+                    "sample123.png",
+                ),
+            ):
+                res = await client.post(
+                    "/api/v1/products/upload-image",
+                    files={"file": ("shoe.png", b"\x89PNG\r\n\x1a\nfake", "image/png")},
+                )
+            assert res.status_code == 201
+            body = res.json()
+            assert body["bucket"] == "product-images"
+            assert body["image_url"] == "http://localhost:9000/product-images/sample123.png"
+        finally:
+            app.dependency_overrides.pop(get_current_user, None)
+
