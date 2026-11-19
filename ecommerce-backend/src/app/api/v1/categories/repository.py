@@ -28,13 +28,22 @@ class CategoryRepository:
     async def create(self , name: str , slug: str) -> Category:
         category = Category(name=name , slug=slug)
         self.session.add(category)
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            raise ConflictError(f"Category with slug '{slug}' already exists")
         await self.session.refresh(category)
         return category
     
-    async def update(self , category: Category , name: str) -> Category:
-        category.name = name 
-        await self.session.commit()
+    async def update(self , category: Category , name: str , slug: str) -> Category:
+        category.name = name
+        category.slug = slug
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            raise ConflictError("Category name or slug already exists")
         await self.session.refresh(category)
         return category
     
