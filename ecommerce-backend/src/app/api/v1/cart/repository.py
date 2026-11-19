@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,11 +22,19 @@ class CartRepository:
         cart = result.scalar_one_or_none()
 
         if not cart:
-            cart = Cart(user_id=user_id)
-            self.session.add(cart)
+            # Unique constraint on carts.user_id makes this race-safe: concurrent
+            # first requests insert at most once, then both select the same row.
+            stmt_insert = (
+                pg_insert(Cart)
+                .values(user_id=user_id)
+                .on_conflict_do_nothing(index_elements=["user_id"])
+            )
+            await self.session.execute(stmt_insert)
             await self.session.flush()
-            # Re-fetch with relationships loaded
             cart = await self.get_cart(user_id)
+
+        if cart is None:
+            raise RuntimeError("Failed to create or load cart")
 
         return cart
 
@@ -41,9 +50,14 @@ class CartRepository:
     async def get_cart_item(
         self, cart_id: uuid.UUID, product_id: uuid.UUID
     ) -> CartItem | None:
-        stmt = select(CartItem).where(
-            CartItem.cart_id == cart_id,
-            CartItem.product_id == product_id,
+        stmt = (
+            select(CartItem)
+            .where(
+                CartItem.cart_id == cart_id,
+                CartItem.product_id == product_id,
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
         )
         result = await self.session.execute(stmt)
         return result.scalars().first()
