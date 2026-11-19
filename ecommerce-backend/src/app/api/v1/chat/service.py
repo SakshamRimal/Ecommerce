@@ -41,7 +41,9 @@ STOP_WORDS = {
     "show",
     "find",
     "tell",
+    "more",
     "have",
+    "has",
     "do",
     "you",
     "your",
@@ -70,6 +72,50 @@ STOP_WORDS = {
     "or",
     "a",
     "an",
+    "from",
+    "under",
+    "below",
+    "less",
+    "than",
+    "max",
+    "budget",
+    "around",
+    "nrs",
+    "rs",
+    "usd",
+    "price",
+    "cost",
+    "stock",
+    "available",
+    "availability",
+    "currently",
+    "check",
+    "its",
+    "it",
+    "whether",
+    "complementary",
+    "items",
+    "item",
+    "products",
+    "product",
+    "catalog",
+    "gear",
+    "recommend",
+    "best",
+    "top",
+    "rated",
+    "compare",
+    "build",
+    "clean",
+    "productive",
+    "gifts",
+    "gift",
+    "remote",
+    "engineer",
+    "deep",
+    "focus",
+    "lightweight",
+    "equipment",
 }
 
 
@@ -102,7 +148,7 @@ class ChatService:
 
         product_repo = getattr(self.tool_executor, "product_repository", None)
         all_products = (
-            await product_repo.list_products(limit=50, offset=0)
+            await product_repo.list_products(limit=200, offset=0)
             if product_repo is not None
             else []
         )
@@ -152,103 +198,159 @@ class ChatService:
         if budget_match:
             max_price = Decimal(budget_match.group(1))
 
-        # 4. Ask to list everything / catalog overview
-        if any(
+        # 4. Check for an exact product name mention first (e.g. "Tell me about the Nike Air Max")
+        exact_matches = [
+            p
+            for p in all_products
+            if p.name.lower() in lower
+            and (max_price is None or Decimal(str(p.price)) <= max_price)
+        ]
+        if len(exact_matches) == 1 and "compare" not in lower:
+            matched = [(100, 100, exact_matches[0])]
+        else:
+            cleaned_without_price = re.sub(
+                r"(?:nrs\.?|rs\.?|\$)\s*\d+(?:\.\d{1,2})?", " ", lower
+            )
+            tokens = [
+                w
+                for w in re.findall(r"[a-z0-9]+", cleaned_without_price)
+                if w not in STOP_WORDS and len(w) >= 2 and not w.isdigit()
+            ]
+
+            matched = []
+            if tokens:
+                for p in all_products:
+                    if max_price is not None and Decimal(str(p.price)) > max_price:
+                        continue
+                    name_low = p.name.lower()
+                    cat_low = p.category.name.lower() if getattr(p, "category", None) else ""
+                    desc_low = (p.description or "").lower()
+                    name_words = set(re.findall(r"[a-z0-9]+", name_low))
+                    cat_words = set(re.findall(r"[a-z0-9]+", cat_low))
+                    # Weight whole-word product name matches highest
+                    name_hits = sum(
+                        4 if t in name_words else (2 if t in name_low else 0)
+                        for t in tokens
+                    )
+                    cat_hits = sum(
+                        3 if t in cat_words else (1 if t in cat_low else 0)
+                        for t in tokens
+                    )
+                    desc_hits = sum(1 for t in tokens if t in desc_low)
+                    score = name_hits + cat_hits + desc_hits
+                    if score > 0:
+                        matched.append((score, name_hits, p))
+
+                matched.sort(key=lambda item: (item[0], item[1]), reverse=True)
+
+        if matched:
+            top_score, top_name_hits, top_prod = matched[0]
+            # If one product strongly matches by name (e.g. "Nike Air Max"), show full details
+            is_single_focus = (
+                len(matched) == 1
+                or (
+                    top_name_hits >= 6
+                    and "compare" not in lower
+                    and top_score > matched[1][0] + 2
+                )
+            )
+            if is_single_focus:
+                p = top_prod
+                stock_msg = (
+                    f"In stock (**{p.stock_quantity} unit(s) ready to ship**)"
+                    if p.stock_quantity > 0
+                    else "Currently **out of stock**"
+                )
+                desc = f"\n\n**Overview:** {p.description}" if p.description else ""
+                related = [
+                    r
+                    for r in all_products
+                    if r.id != p.id
+                    and getattr(r, "category_id", None) == getattr(p, "category_id", None)
+                ][:2]
+                related_text = ""
+                if related:
+                    rel_lines = [
+                        f"• **{r.name}** — NRs {Decimal(str(r.price)):.2f} ({r.stock_quantity} in stock)"
+                        for r in related
+                    ]
+                    related_text = "\n\n**Complementary items in this category:**\n" + "\n".join(rel_lines)
+                return (
+                    f"Here are the live details for **{p.name}**:\n\n"
+                    f"• **Price:** NRs {Decimal(str(p.price)):.2f}\n"
+                    f"• **Category:** {p.category.name if getattr(p, 'category', None) else 'General'}\n"
+                    f"• **Warehouse Stock:** {stock_msg}"
+                    f"{desc}"
+                    f"{related_text}"
+                )
+
+            top = [p for _, _, p in matched[:5]]
+            budget_note = f" under **NRs {max_price:.2f}**" if max_price is not None else ""
+            lines = [
+                f"• **{p.name}** — **NRs {Decimal(str(p.price)):.2f}** "
+                f"({p.stock_quantity} in stock{f', {p.category.name}' if getattr(p, 'category', None) else ''})"
+                + (f"\n  *{p.description}*" if p.description else "")
+                for p in top
+            ]
+            return (
+                f"Here are the best matching products{budget_note} from our live catalog:\n\n"
+                + "\n".join(lines)
+                + "\n\nWould you like full specs or stock verification on any of these?"
+            )
+
+        # 5. Catalog overview, recommendations, or budget-only query (e.g. "Gifts under NRs 200", "What is in stock?")
+        candidates = [
+            p
+            for p in all_products
+            if max_price is None or Decimal(str(p.price)) <= max_price
+        ]
+        if not candidates:
+            return f"We don't currently have any products under **NRs {max_price:.2f}** in stock."
+
+        if max_price is not None or any(
             phrase in lower
             for phrase in (
                 "all product",
                 "what product",
                 "what do you have",
                 "what do you sell",
-                "show me everything",
-                "list product",
+                "show me",
+                "list",
                 "in stock",
                 "available",
                 "catalog",
+                "recommend",
+                "best",
+                "top",
+                "compare",
+                "gift",
+                "setup",
             )
         ):
-            candidates = [
-                p
-                for p in all_products
-                if max_price is None or Decimal(str(p.price)) <= max_price
-            ]
-            if not candidates:
-                return f"We don't currently have any products under **NRs {max_price}** in stock."
+            heading = (
+                f"Here are our top in-stock recommendations under **NRs {max_price:.2f}**:"
+                if max_price is not None
+                else "Here are our top featured products currently available in stock:"
+            )
             lines = [
                 f"• **{p.name}** — **NRs {Decimal(str(p.price)):.2f}** "
-                f"({p.stock_quantity} in stock{f', {p.category.name}' if p.category else ''})"
+                f"({p.stock_quantity} in stock{f', {p.category.name}' if getattr(p, 'category', None) else ''})"
                 for p in candidates[:8]
             ]
             return (
-                "Here is what we currently have available in our live catalog:\n\n"
+                f"{heading}\n\n"
                 + "\n".join(lines)
-                + "\n\nWould you like more details on any of these?"
-            )
-
-        # 5. Keyword matching against live products
-        tokens = [
-            w
-            for w in re.findall(r"[a-z0-9]+", lower)
-            if w not in STOP_WORDS and len(w) >= 2 and not w.isdigit()
-        ]
-        matched = []
-        for p in all_products:
-            if max_price is not None and Decimal(str(p.price)) > max_price:
-                continue
-            haystack = " ".join(
-                filter(
-                    None,
-                    [
-                        p.name.lower(),
-                        (p.description or "").lower(),
-                        p.category.name.lower() if p.category else "",
-                    ],
-                )
-            )
-            score = sum(1 for t in tokens if t in haystack)
-            if score > 0 or (max_price is not None and not tokens):
-                matched.append((score, p))
-
-        matched.sort(key=lambda item: item[0], reverse=True)
-
-        if matched:
-            top = [p for _, p in matched[:5]]
-            if len(top) == 1:
-                p = top[0]
-                stock_msg = (
-                    f"currently in stock (**{p.stock_quantity} available**)"
-                    if p.stock_quantity > 0
-                    else "currently **out of stock**"
-                )
-                desc = f"\n\n{p.description}" if p.description else ""
-                return (
-                    f"I found **{p.name}** in our catalog!\n\n"
-                    f"• **Price:** NRs {Decimal(str(p.price)):.2f}\n"
-                    f"• **Category:** {p.category.name if p.category else 'General'}\n"
-                    f"• **Availability:** {stock_msg}"
-                    f"{desc}"
-                )
-
-            lines = [
-                f"• **{p.name}** (NRs {Decimal(str(p.price)):.2f}) — "
-                f"{p.stock_quantity} in stock"
-                + (f" — *{p.description}*" if p.description else "")
-                for p in top
-            ]
-            return (
-                "Here are the matching products from our live catalog:\n\n"
-                + "\n".join(lines)
-                + "\n\nWould you like details or stock info on a specific item?"
+                + "\n\nAsk me about any product by name for full specs and complementary items!"
             )
 
         # 6. No keyword match — be transparent and show available catalog items
         sample_lines = [
             f"• **{p.name}** (NRs {Decimal(str(p.price)):.2f}) — {p.stock_quantity} in stock"
-            for p in all_products[:5]
+            for p in all_products[:6]
         ]
         return (
             f"I couldn't find an exact match for *\"{cleaned}\"* in our catalog right now.\n\n"
-            f"Here is what we currently have available:\n"
+            f"Here are some popular items we currently have in stock:\n"
             + "\n".join(sample_lines)
             + "\n\nFeel free to ask about any of these!"
         )
