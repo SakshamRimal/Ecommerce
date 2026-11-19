@@ -7,14 +7,18 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
+ENV UV_HTTP_TIMEOUT=120
+
 # 1. Copy dependency manifests first for optimal Docker layer caching
-COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen --no-dev --no-install-project
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 
 # 2. Copy application source and Alembic config, then install the project package
+COPY README.md alembic.ini ./
 COPY src/ ./src/
-COPY alembic.ini ./
-RUN uv sync --frozen --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 # Run as non-root user in production
 RUN useradd --create-home --shell /bin/bash appuser \
