@@ -78,12 +78,12 @@ class Settings(BaseSettings):
     
     #llm providers (priority: 1. Gemini Free -> 2. Grok/Groq Free -> 3. OpenAI)
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-2.5-flash"
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
     grok_api_key: str | None = None
     groq_api_key: str | None = None
-    grok_model: str = "llama-3.3-70b-versatile"
+    grok_model: str = "openai/gpt-oss-120b"
     grok_base_url: str | None = None
 
     #openai (tertiary fallback)
