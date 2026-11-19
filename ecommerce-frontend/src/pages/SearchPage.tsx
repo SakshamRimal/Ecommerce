@@ -144,6 +144,7 @@ export function SearchPage() {
       id: r.id,
       name: r.name,
       description: r.description,
+      image_url: r.image_url ?? null,
       price: r.price,
       stock_quantity: r.stock_quantity,
       category: r.category_name
@@ -162,8 +163,10 @@ export function SearchPage() {
           "ergonomic setup to prevent wrist fatigue",
           "minimalist desk lighting for late nights",
           "waterproof bag for daily laptop commute",
+          "something for hiking and running in the rain",
+          "gift for someone who loves morning coffee",
         ]
-      : ["headphones", "coffee", "chair", "backpack", "keyboard"];
+      : ["headphones", "shoes", "keyboard", "coffee", "backpack", "camera"];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
