@@ -23,9 +23,9 @@ function renderWithProviders(ui: React.ReactElement, initialRoute = "/") {
 }
 
 describe("Storefront Primitives & Components", () => {
-  it("renders Price with formatted USD currency and tabular-nums", () => {
+  it("renders Price with formatted NRs currency and tabular-nums", () => {
     render(<Price amount="189.50" />);
-    const el = screen.getByText("$189.50");
+    const el = screen.getByText("NRs 189.50");
     expect(el).toBeInTheDocument();
     expect(el).toHaveClass("tabular-nums");
   });
@@ -68,7 +68,7 @@ describe("Storefront Primitives & Components", () => {
     );
 
     expect(screen.getByText("Test Mechanical Keyboard")).toBeInTheDocument();
-    expect(screen.getByText("$189.00")).toBeInTheDocument();
+    expect(screen.getByText("NRs 189.00")).toBeInTheDocument();
     const button = screen.getByRole("button", { name: /out of stock/i });
     expect(button).toBeDisabled();
   });
