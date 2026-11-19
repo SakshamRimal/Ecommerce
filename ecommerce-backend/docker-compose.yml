@@ -52,6 +52,19 @@ services:
       - "0.0.0.0:${OTEL_HTTP_HOST_PORT:-14318}:4318"
     restart: unless-stopped
 
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
   api:
     build: .
     env_file: .env
@@ -62,6 +75,11 @@ services:
       - RATE_LIMIT_STORAGE_URI=redis://redis:6379/2
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - OTEL_EXPORTER_ENDPOINT=otel-collector:4317
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_PUBLIC_URL=http://localhost:${MINIO_API_PORT:-9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - MINIO_BUCKET=${MINIO_BUCKET:-product-images}
     ports:
       - "8000:8000"
     depends_on:
@@ -72,6 +90,8 @@ services:
       elasticsearch:
         condition: service_started
       otel-collector:
+        condition: service_started
+      minio:
         condition: service_started
     restart: unless-stopped
 
@@ -111,3 +131,4 @@ volumes:
   postgres_data:
   redis_data:
   es_data:
+  minio_data:
