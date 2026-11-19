@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import AsyncMock
 from app.api.v1.health.service import HealthService
 from app.api.v1.health.repository import HealthCheckRepository
