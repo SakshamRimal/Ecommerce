@@ -1,8 +1,14 @@
-from sqlalchemy import String , Boolean , Enum
-from sqlalchemy.orm import Mapped , mapped_column , relationship 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from sqlalchemy import String, Boolean, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PyEnum
 
-from app.db.base import Base , TimestampMixin , UUIDPrimaryKeyMixin
+from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+
+if TYPE_CHECKING:
+    from app.models.cart import Cart
 
 class UserRole(str, PyEnum):
     CUSTOMER = "customer"
