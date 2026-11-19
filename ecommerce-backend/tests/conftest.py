@@ -35,16 +35,29 @@ def sample_admin_user() -> User:
     )
 
 
-@pytest.fixture
-def mock_session() -> AsyncMock:
+def _make_mock_session() -> AsyncMock:
     session = AsyncMock()
     session.commit = AsyncMock()
     session.rollback = AsyncMock()
     session.refresh = AsyncMock()
     session.add = MagicMock()
+    session.expire = MagicMock()
     session.flush = AsyncMock()
     session.delete = AsyncMock()
+    session.get = AsyncMock(return_value=None)
+
+    default_result = MagicMock()
+    default_result.scalar_one.return_value = 1
+    default_result.scalar_one_or_none.return_value = None
+    default_result.scalars.return_value.all.return_value = []
+    default_result.scalars.return_value.first.return_value = None
+    session.execute = AsyncMock(return_value=default_result)
     return session
+
+
+@pytest.fixture
+def mock_session() -> AsyncMock:
+    return _make_mock_session()
 
 
 @pytest.fixture
@@ -68,15 +81,7 @@ def mock_auth_repository():
 
 async def override_get_db_session():
     """Yield a mock session for integration tests (no real DB needed)."""
-    session = AsyncMock()
-    session.commit = AsyncMock()
-    session.rollback = AsyncMock()
-    session.refresh = AsyncMock()
-    session.add = MagicMock()
-    session.flush = AsyncMock()
-    session.delete = AsyncMock()
-    session.execute = AsyncMock()
-    yield session
+    yield _make_mock_session()
 
 
 @pytest.fixture
