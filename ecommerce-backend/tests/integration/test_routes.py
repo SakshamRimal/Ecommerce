@@ -1,4 +1,3 @@
-import pytest
 from httpx import AsyncClient
 from unittest.mock import AsyncMock, patch
 from app.main import app
@@ -91,6 +90,7 @@ class TestRouteRegistration:
             "/api/v1/auth/register",
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
+            "/api/v1/auth/logout",
             "/api/v1/auth/me",
             "/api/v1/products",
             "/api/v1/products/{product_id}",
@@ -100,7 +100,12 @@ class TestRouteRegistration:
             "/api/v1/cart/items",
             "/api/v1/cart/items/{product_id}",
             "/api/v1/orders",
+            "/api/v1/orders/{order_id}",
+            "/api/v1/orders/{order_id}/cancel",
             "/api/v1/search/products",
+            "/api/v1/search/products/semantic",
+            "/api/v1/chat",
+            "/api/v1/chat/history",
         ]
         for path in expected:
             assert path in paths, f"Missing route: {path}"
