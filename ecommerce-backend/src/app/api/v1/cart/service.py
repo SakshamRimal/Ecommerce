@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal
+from sqlalchemy.exc import IntegrityError
 
 from app.api.v1.cart.repository import CartRepository
 from app.api.v1.cart.schema import CartItemRequest, CartResponse, CartItemResponse
@@ -42,7 +43,28 @@ class CartService:
                 )
             await self.repository.update_item_quantity(existing_item, new_qty)
         else:
-            await self.repository.add_item(cart.id, data.product_id, data.quantity)
+            try:
+                await self.repository.add_item(cart.id, data.product_id, data.quantity)
+            except IntegrityError:
+                # Concurrent add_item inserted the same (cart_id, product_id) row first.
+                rollback = getattr(self.repository.session, "rollback", None)
+                if callable(rollback):
+                    res = rollback()
+                    if hasattr(res, "__await__"):
+                        await res
+                existing_item = await self.repository.get_cart_item(
+                    cart.id, data.product_id
+                )
+                if existing_item is None:
+                    raise
+                new_qty = existing_item.quantity + data.quantity
+                if product.stock_quantity < new_qty:
+                    raise ConflictError(
+                        f"Insufficient stock for '{product.name}' "
+                        f"(cart has {existing_item.quantity}, adding {data.quantity}, "
+                        f"available {product.stock_quantity})"
+                    )
+                await self.repository.update_item_quantity(existing_item, new_qty)
 
         # Expire cached cart so re-fetch gets fresh data from DB
         self.repository.session.expire(cart)
