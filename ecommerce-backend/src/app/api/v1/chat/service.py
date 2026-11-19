@@ -148,10 +148,15 @@ class ChatService:
 
         # 1. Primary: Gemini Free tier
         if _is_usable_key(cfg.gemini_api_key):
+            gemini_model = (
+                "gemini-2.5-flash"
+                if cfg.gemini_model in {"gemini-2.0-flash", "gemini-1.5-flash"}
+                else cfg.gemini_model
+            )
             chain.append(
                 {
                     "name": "gemini",
-                    "model": cfg.gemini_model,
+                    "model": gemini_model,
                     "client": AsyncOpenAI(
                         api_key=cfg.gemini_api_key.strip(),
                         base_url=cfg.gemini_base_url,
@@ -169,11 +174,15 @@ class ChatService:
             else:
                 base_url = "https://api.groq.com/openai/v1"
 
-            model = (
-                "grok-2-latest"
-                if grok_key.startswith("xai-") and cfg.grok_model == "llama-3.3-70b-versatile"
-                else cfg.grok_model
-            )
+            if grok_key.startswith("xai-") and cfg.grok_model in {
+                "llama-3.3-70b-versatile",
+                "openai/gpt-oss-120b",
+            }:
+                model = "grok-2-latest"
+            elif cfg.grok_model == "llama-3.3-70b-versatile":
+                model = "openai/gpt-oss-120b"
+            else:
+                model = cfg.grok_model
             chain.append(
                 {
                     "name": "grok",
