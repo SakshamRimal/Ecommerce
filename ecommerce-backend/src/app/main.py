@@ -1,4 +1,6 @@
+import asyncio
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
@@ -13,10 +15,11 @@ from app.core.rate_limiter import limiter
 from app.core.exceptions import AppException
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.core.cache import close_redis_pool
 from app.core.job_queue import close_job_queue
 from app.middlewares.request_context import RequestContextMiddleware
 from app.middlewares.security_headers import SecurityHeadersMiddleware
-from app.db.session import engine 
+from app.db.session import engine
 from app.api.v1.router import api_router
 from app.core.elasticsearch import close_es_client
 from app.core.elasticsearch import get_es_client
@@ -27,27 +30,34 @@ configure_logging()
 logger = get_logger("startup")
 
 
+def _resolve_alembic_ini() -> Path:
+    local_ini = Path(__file__).resolve().parents[2] / "alembic.ini"
+    if local_ini.exists():
+        return local_ini
+    return Path("/app/alembic.ini")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    
     # Startup tasks
-    
     logger.info("app_starting", env=get_settings().app_env)
 
-    # Auto-run migrations
+    # Auto-run migrations off the event loop
     try:
-        alembic_cfg = Config("/app/alembic.ini")
-        command.upgrade(alembic_cfg, "head")
+        alembic_cfg = Config(str(_resolve_alembic_ini()))
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, command.upgrade, alembic_cfg, "head")
         logger.info("migrations_applied")
     except Exception as e:
         logger.warning("migrations_failed", error=str(e))
 
     await ensure_product_index_exists(get_es_client())  # Ensure the product index exists in Elasticsearch
     yield
-    
-    #shutdown tasks
+
+    # Shutdown tasks
     logger.info("app_stopping", env=get_settings().app_env)
     await engine.dispose()  # Close the database connection pool
+    await close_redis_pool()  # Close the Redis cache connection pool
     await close_es_client()  # Close the Elasticsearch client connection pool
     await close_job_queue()  # Close the job queue connection pool
     logger.info("db_connection_pool_closed")
