@@ -2,6 +2,8 @@ import uuid
 from decimal import Decimal 
 from pydantic import BaseModel , ConfigDict 
 
+from app.models.order import OrderStatus
+
 class OrderItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
@@ -14,7 +16,7 @@ class OrderItemResponse(BaseModel):
 class OrderResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    status: str 
+    status: OrderStatus
     total_amount: Decimal
     items: list[OrderItemResponse]
     
