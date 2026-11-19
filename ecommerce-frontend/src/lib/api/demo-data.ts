@@ -507,7 +507,7 @@ export const demoBackend = {
     const summary = top
       .map(
         (p) =>
-          `• **${p.name}** ($${p.price}) — ${
+          `• **${p.name}** (NRs ${p.price}) — ${
             p.stock_quantity > 0 ? `${p.stock_quantity} in stock` : "currently out of stock"
           }`,
       )
