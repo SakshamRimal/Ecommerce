@@ -8,6 +8,15 @@ class CartItemRequest(BaseModel):
     quantity: int = Field(ge=1, default=1)
 
 
+class CartItemUpdateRequest(BaseModel):
+    """Quantity update for an item already identified by the URL path.
+
+    A quantity of 0 removes the item.
+    """
+
+    quantity: int = Field(ge=0)
+
+
 class CartItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
