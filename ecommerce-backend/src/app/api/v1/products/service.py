@@ -23,6 +23,7 @@ class ProductService:
         product = await self.repository.create(
             name=data.name,
             description=data.description,
+            image_url=data.image_url,
             price=data.price,
             stock_quantity=data.stock_quantity,
             category_id=data.category_id,
@@ -41,7 +42,7 @@ class ProductService:
     async def list_products(
         self, limit: int, offset: int, category_id: uuid.UUID | None
     ) -> list[ProductListResponse]:
-        cache_key = f"product:list:{limit}:{offset}:{category_id}"
+        cache_key = f"product:list:v2:{limit}:{offset}:{category_id}"
 
         cached = await cache_get(cache_key)
         if cached is not None:
@@ -78,6 +79,7 @@ class ProductService:
             expected_version=product.version,
             name=data.name,
             description=data.description,
+            image_url=data.image_url,
             price=data.price,
             stock_quantity=data.stock_quantity,
             category_id=data.category_id,
@@ -85,6 +87,11 @@ class ProductService:
 
         # This product's data changed — invalidate list caches so stale prices/names don't linger
         await cache_delete_pattern("product:list:*")
+
+        # Keep the search index and semantic vector in sync with the catalog.
+        queue = await get_job_queue()
+        await queue.enqueue_job("index_product_task", str(updated.id))
+        await queue.enqueue_job("generate_product_embedding_task", str(updated.id))
 
         return ProductResponse.model_validate(updated)
 
