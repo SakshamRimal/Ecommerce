@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db_session
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, oauth2_scheme
 from app.models.user import User 
 from app.api.v1.auth.repository import UserRepository
 from app.api.v1.auth.service import AuthService
@@ -12,6 +12,7 @@ from app.api.v1.auth.schema import (
     UserResponse,
     TokenResponse,
     RefreshTokenRequest,
+    LogoutRequest,
 )
 from app.core.rate_limiter import limiter
 
@@ -43,6 +44,21 @@ async def refresh_token(
     service: AuthService = Depends(get_auth_service)
 ):
     return await service.refresh_token(data.refresh_token)
+
+
+@router.post("/logout")
+async def logout(
+    data: LogoutRequest | None = None,
+    access_token: str = Depends(oauth2_scheme),
+    current_user: User = Depends(get_current_user),
+    service: AuthService = Depends(get_auth_service),
+):
+    """Revoke the current access token and, when supplied, the refresh token."""
+    await service.logout(
+        access_token,
+        data.refresh_token if data else None,
+    )
+    return {"detail": "Logged out"}
 
 @router.get("/me" , response_model=UserResponse)
 async def get_me(
