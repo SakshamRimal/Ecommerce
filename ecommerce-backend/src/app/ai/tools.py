@@ -3,7 +3,7 @@ TOOL_DEFINITIONS = [
         "type":"function",
         "function":{
             "name":"search_products",
-            "description":"Search the product catalog by keywordd , with optional price filtering. Use this whenever the user descibes what they are looking for ",
+            "description":"Search the product catalog by keyword, with optional price and category filtering. Use this whenever the user describes what they are looking for.",
             "parameters": {
                 "type":"object",
                 "properties":{
@@ -18,6 +18,10 @@ TOOL_DEFINITIONS = [
                     "max_price":{
                         "type":"number",
                         "description":"Optional maximum price filter for the search results"
+                    },
+                    "category_id":{
+                        "type":"string",
+                        "description":"Optional category UUID to restrict results to one category"
                     }
                 },
                 "required":["query"]
@@ -43,8 +47,8 @@ TOOL_DEFINITIONS = [
         "type":"function",
         "function": {
             "name":"check_stock",
-            "description": "Check current stock quantity for a sepcific product.",
-            "paramters":{
+            "description": "Check current stock quantity for a specific product.",
+            "parameters":{
                 "type":"object",
                 "properties":{
                     "product_id":{"type":"string","description":"The unique identifier of the product to check stock for"}
@@ -62,6 +66,9 @@ TOOL_DEFINITIONS = [
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "A natural-language description of what the user wants"},
+                    "min_price":{"type":"number","description":"Optional minimum price filter"},
+                    "max_price":{"type":"number","description":"Optional maximum price filter"},
+                    "category_id":{"type":"string","description":"Optional category UUID to restrict results"},
                 },
                 "required": ["query"],
         },
