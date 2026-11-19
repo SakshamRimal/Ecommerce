@@ -1,15 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  CheckCircle2,
   Edit3,
   FolderPlus,
+  ImagePlus,
   Layers,
   Lock,
   PackagePlus,
   Plus,
   ShieldAlert,
   Trash2,
+  UploadCloud,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Button,
@@ -44,6 +47,8 @@ export function AdminConsolePage() {
   const [prodPrice, setProdPrice] = useState("");
   const [prodStock, setProdStock] = useState("10");
   const [prodImage, setProdImage] = useState("");
+  const [prodImageMeta, setProdImageMeta] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [prodCategoryId, setProdCategoryId] = useState("");
   const [prodErrors, setProdErrors] = useState<Record<string, string>>({});
 
@@ -179,8 +184,45 @@ export function AdminConsolePage() {
     setProdPrice("");
     setProdStock("10");
     setProdImage("");
+    setProdImageMeta(null);
+    setIsUploadingImage(false);
     setProdCategoryId("");
     setProdErrors({});
+  };
+
+  const handleImageFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingImage(true);
+    setProdErrors((prev) => {
+      const next = { ...prev };
+      delete next.image;
+      return next;
+    });
+    try {
+      const uploaded = await api.products.uploadImage(file);
+      setProdImage(uploaded.image_url);
+      setProdImageMeta(
+        `${file.name} (${(uploaded.size_bytes / 1024).toFixed(1)} KB · MinIO bucket: ${uploaded.bucket})`,
+      );
+      addToast({
+        title: "Image uploaded to MinIO",
+        description: `${file.name} stored as ${uploaded.object_key}`,
+        tone: "success",
+      });
+    } catch (err) {
+      const msg =
+        err instanceof ApiError ? err.detail : "Failed to upload product image to MinIO.";
+      setProdErrors((prev) => ({ ...prev, image: msg }));
+      addToast({
+        title: "Image upload failed",
+        description: msg,
+        tone: "error",
+      });
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = "";
+    }
   };
 
   const startEditProduct = async (productId: string) => {
@@ -322,7 +364,7 @@ export function AdminConsolePage() {
                 </div>
 
                 <Input
-                  label="Price (USD Decimal)"
+                  label="Price (NRs)"
                   required
                   inputMode="decimal"
                   value={prodPrice}
@@ -342,13 +384,75 @@ export function AdminConsolePage() {
                 />
 
                 <div className="sm:col-span-2">
-                  <Input
-                    label="Image URL (Optional)"
-                    type="url"
-                    value={prodImage}
-                    onChange={(e) => setProdImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                  />
+                  <label className="mb-1.5 block text-sm font-medium text-[var(--fg)]">
+                    Product Image (Stored in MinIO Object Storage)
+                  </label>
+                  <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--muted)]/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
+                      {prodImage ? (
+                        <img
+                          src={prodImage}
+                          alt="Uploaded product preview"
+                          className="h-16 w-16 rounded-xl border border-[var(--border)] object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--muted-fg)]">
+                          <ImagePlus className="h-6 w-6" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--fg)]">
+                          {isUploadingImage
+                            ? "Uploading image to MinIO bucket..."
+                            : prodImage
+                              ? "Product image uploaded and ready"
+                              : "Upload a product photo (JPEG, PNG, WEBP, AVIF up to 10 MB)"}
+                        </p>
+                        {prodImageMeta && (
+                          <p className="mt-0.5 flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            {prodImageMeta}
+                          </p>
+                        )}
+                        {prodErrors.image && (
+                          <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">
+                            {prodErrors.image}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
+                        <UploadCloud className="h-4 w-4" />
+                        {isUploadingImage
+                          ? "Uploading..."
+                          : prodImage
+                            ? "Replace Image"
+                            : "Choose Image File"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                          disabled={isUploadingImage}
+                          onChange={handleImageFileSelect}
+                          className="hidden"
+                        />
+                      </label>
+                      {prodImage && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setProdImage("");
+                            setProdImageMeta(null);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">
