@@ -183,32 +183,71 @@ export function SearchPage() {
           </div>
 
           {/* Mode Switcher */}
-          <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--muted)] p-1">
+          <div
+            role="group"
+            aria-label="Search discovery engine selection"
+            className="inline-flex items-center rounded-2xl border-2 border-slate-200/90 bg-slate-100 p-1.5 shadow-inner dark:border-slate-800 dark:bg-slate-900 gap-1.5"
+          >
             <button
               type="button"
+              aria-pressed={mode === "keyword"}
               onClick={() => handleModeSwitch("keyword")}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                 mode === "keyword"
-                  ? "bg-[var(--card)] text-[var(--fg)] shadow-xs"
-                  : "text-[var(--muted-fg)] hover:text-[var(--fg)]"
+                  ? "bg-slate-950 text-white shadow-md ring-2 ring-slate-950/20 dark:bg-white dark:text-slate-950 dark:ring-white/30"
+                  : "text-slate-600 hover:bg-white/70 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
               }`}
             >
-              <Search className="h-3.5 w-3.5" />
-              Keyword + Filters
+              <Search className={`h-4 w-4 ${mode === "keyword" ? "text-sky-400 dark:text-sky-600" : "text-current"}`} />
+              <span>Keyword + Filters</span>
+              {mode === "keyword" && (
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider dark:bg-slate-900/20">
+                  Active
+                </span>
+              )}
             </button>
             <button
               type="button"
+              aria-pressed={mode === "semantic"}
               onClick={() => handleModeSwitch("semantic")}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                 mode === "semantic"
-                  ? "bg-[var(--primary)] text-[var(--primary-fg)] shadow-xs"
-                  : "text-[var(--muted-fg)] hover:text-[var(--fg)]"
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30 ring-2 ring-violet-500/40"
+                  : "text-slate-600 hover:bg-white/70 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
               }`}
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              Semantic AI Search
+              <Sparkles className={`h-4 w-4 ${mode === "semantic" ? "text-amber-300 animate-pulse" : "text-current"}`} />
+              <span>Semantic AI Search</span>
+              {mode === "semantic" && (
+                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
+                  Active
+                </span>
+              )}
             </button>
           </div>
+        </div>
+
+        {/* Current Active Engine Indicator Banner */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 px-4 py-2.5">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted-fg)]">
+              Engine:
+            </span>
+            {mode === "keyword" ? (
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+                <strong>Exact Keyword Engine</strong> &mdash; Instant product title/description matches with category &amp; price filters
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-violet-700 dark:text-violet-300">
+                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-violet-500 animate-pulse shadow-xs shadow-violet-500/50"></span>
+                <strong>AI Semantic Engine</strong> &mdash; Vector embeddings understanding concept, context &amp; intent
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] text-[var(--muted-fg)]">
+            Click toggle above to switch mode anytime
+          </span>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
