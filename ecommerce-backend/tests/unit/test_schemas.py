@@ -59,8 +59,19 @@ class TestUserResponse:
             email="user@example.com",
             full_name="John Doe",
             is_active=True,
+            role="customer",
         )
         assert resp.is_active is True
+        assert resp.role == "customer"
+
+    def test_missing_role_fails(self):
+        with pytest.raises(ValidationError):
+            UserResponse(
+                id=uuid.uuid4(),
+                email="user@example.com",
+                full_name="John Doe",
+                is_active=True,
+            )
 
     def test_from_attributes(self):
         from app.api.v1.auth.schema import UserResponse as UR
