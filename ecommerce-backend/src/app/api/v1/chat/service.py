@@ -119,19 +119,127 @@ STOP_WORDS = {
 }
 
 
+def _is_usable_key(key: str | None) -> bool:
+    if not key:
+        return False
+    cleaned = key.strip()
+    if not cleaned:
+        return False
+    placeholder_prefixes = ("your_", "sk-,", "replace_", "changeme")
+    return not cleaned.lower().startswith(placeholder_prefixes)
+
+
 class ChatService:
     def __init__(self, repository: ChatRepository, tool_executor: ToolExecutor):
         self.repository = repository
         self.tool_executor = tool_executor
-        self.client = AsyncOpenAI(api_key=settings.openai_api_key)
+        self.client = AsyncOpenAI(api_key=settings.openai_api_key or "sk-placeholder")
+        self.providers = self._build_llm_providers()
+
+    @staticmethod
+    def _build_llm_providers() -> list[dict]:
+        """Build ordered LLM fallback chain:
+        1. Gemini Free (https://generativelanguage.googleapis.com/v1beta/openai/)
+        2. Grok / Groq Free (https://api.x.ai/v1 or https://api.groq.com/openai/v1)
+        3. OpenAI Fallback (https://api.openai.com/v1)
+        """
+        cfg = get_settings()
+        chain: list[dict] = []
+
+        # 1. Primary: Gemini Free tier
+        if _is_usable_key(cfg.gemini_api_key):
+            chain.append(
+                {
+                    "name": "gemini",
+                    "model": cfg.gemini_model,
+                    "client": AsyncOpenAI(
+                        api_key=cfg.gemini_api_key.strip(),
+                        base_url=cfg.gemini_base_url,
+                    ),
+                }
+            )
+
+        # 2. First Fallback: Grok (xAI) or Groq Free tier
+        grok_key = (cfg.grok_api_key or cfg.groq_api_key or "").strip()
+        if _is_usable_key(grok_key):
+            if cfg.grok_base_url:
+                base_url = cfg.grok_base_url
+            elif grok_key.startswith("xai-"):
+                base_url = "https://api.x.ai/v1"
+            else:
+                base_url = "https://api.groq.com/openai/v1"
+
+            model = (
+                "grok-2-latest"
+                if grok_key.startswith("xai-") and cfg.grok_model == "llama-3.3-70b-versatile"
+                else cfg.grok_model
+            )
+            chain.append(
+                {
+                    "name": "grok",
+                    "model": model,
+                    "client": AsyncOpenAI(api_key=grok_key, base_url=base_url),
+                }
+            )
+
+        # 3. Final LLM Fallback: OpenAI
+        if _is_usable_key(cfg.openai_api_key):
+            chain.append(
+                {
+                    "name": "openai",
+                    "model": cfg.openai_model,
+                    "client": AsyncOpenAI(api_key=cfg.openai_api_key.strip()),
+                }
+            )
+
+        return chain
 
     async def _complete(self, messages: list[dict]):
-        return await self.client.chat.completions.create(
-            model=settings.openai_model,
-            messages=messages,
-            tools=TOOL_DEFINITIONS,
-            max_tokens=settings.openai_max_tokens,
-        )
+        """Try Gemini first; on quota/error fall back to Grok, then OpenAI."""
+        providers = self.providers or [
+            {
+                "name": "openai",
+                "model": settings.openai_model,
+                "client": self.client,
+            }
+        ]
+        last_exc: Exception | None = None
+
+        for idx, provider in enumerate(providers):
+            provider_name = provider["name"]
+            model_name = provider["model"]
+            llm_client: AsyncOpenAI = provider["client"]
+            try:
+                response = await llm_client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    tools=TOOL_DEFINITIONS,
+                    max_tokens=settings.openai_max_tokens,
+                )
+                logger.info(
+                    "llm_completion_succeeded",
+                    provider=provider_name,
+                    model=model_name,
+                )
+                return response
+            except Exception as exc:  # noqa: BLE001 - fall back to next provider
+                last_exc = exc
+                next_provider = (
+                    providers[idx + 1]["name"]
+                    if idx + 1 < len(providers)
+                    else "local_catalog_concierge"
+                )
+                logger.warning(
+                    "llm_provider_quota_or_error_fallback",
+                    failed_provider=provider_name,
+                    failed_model=model_name,
+                    fallback_to=next_provider,
+                    error=str(exc),
+                )
+
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("No LLM providers configured")
 
     @staticmethod
     def _parse_arguments(raw: str | None) -> dict:
