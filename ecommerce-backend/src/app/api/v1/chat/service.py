@@ -1,10 +1,14 @@
+from decimal import Decimal
+import json
+import re
+
 import structlog
 from openai import AsyncOpenAI
+
 from app.core.config import get_settings
 from app.ai.tools import TOOL_DEFINITIONS
 from app.ai.tool_executor import ToolExecutor
 from app.api.v1.chat.repository import ChatRepository
-from app.models.chat import MessageRole
 
 settings = get_settings()
 logger = structlog.get_logger("chat_service")
@@ -14,6 +18,59 @@ Use the available tools to search the real product catalog and check stock —
 never invent prices, product names, or availability. If you don't know something,
 say so and offer to search for it. Keep responses concise and friendly."""
 
+GREETING_WORDS = {
+    "hi",
+    "hello",
+    "hey",
+    "hola",
+    "namaste",
+    "greetings",
+    "yo",
+    "sup",
+    "good morning",
+    "good afternoon",
+    "good evening",
+}
+
+STOP_WORDS = {
+    "what",
+    "which",
+    "where",
+    "when",
+    "show",
+    "find",
+    "tell",
+    "have",
+    "do",
+    "you",
+    "your",
+    "the",
+    "for",
+    "with",
+    "about",
+    "some",
+    "any",
+    "can",
+    "please",
+    "help",
+    "me",
+    "looking",
+    "want",
+    "need",
+    "buy",
+    "get",
+    "are",
+    "is",
+    "in",
+    "on",
+    "to",
+    "of",
+    "and",
+    "or",
+    "a",
+    "an",
+}
+
 
 class ChatService:
     def __init__(self, repository: ChatRepository, tool_executor: ToolExecutor):
@@ -21,49 +78,242 @@ class ChatService:
         self.tool_executor = tool_executor
         self.client = AsyncOpenAI(api_key=settings.openai_api_key)
 
-    async def send_message(self, session_id, user_message: str) -> str:
-        await self.repository.add_message(session_id, MessageRole.USER, user_message)
-
-        history = await self.repository.get_recent_messages(
-            session_id, limit=settings.chat_max_history_messages
-        )
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        messages += [{"role": m.role.value, "content": m.content} for m in history]
-
-        # First call — GPT decides whether to use tools
-        response = await self.client.chat.completions.create(
+    async def _complete(self, messages: list[dict]):
+        return await self.client.chat.completions.create(
             model=settings.openai_model,
             messages=messages,
             tools=TOOL_DEFINITIONS,
             max_tokens=settings.openai_max_tokens,
         )
-        choice = response.choices[0]
 
-        # Tool-calling loop — GPT can chain multiple tool calls before its final answer
-        while choice.finish_reason == "tool_calls":
-            messages.append(choice.message.model_dump(exclude_none=True))
+    @staticmethod
+    def _parse_arguments(raw: str | None) -> dict:
+        try:
+            parsed = json.loads(raw or "{}")
+        except (json.JSONDecodeError, TypeError):
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
 
-            for tool_call in choice.message.tool_calls:
-                import json
-                args = json.loads(tool_call.function.arguments)
-                logger.info("tool_call_executed", tool=tool_call.function.name, args=args)
+    async def _local_concierge_reply(self, user_message: str) -> str:
+        """Smart local catalog concierge used when OpenAI API is unreachable or out of quota."""
+        cleaned = user_message.strip()
+        lower = cleaned.lower().rstrip("!.?,")
 
-                result = await self.tool_executor.execute(tool_call.function.name, args)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "content": result,
-                })
+        product_repo = getattr(self.tool_executor, "product_repository", None)
+        all_products = (
+            await product_repo.list_products(limit=50, offset=0)
+            if product_repo is not None
+            else []
+        )
 
-            response = await self.client.chat.completions.create(
-                model=settings.openai_model,
-                messages=messages,
-                tools=TOOL_DEFINITIONS,
-                max_tokens=settings.openai_max_tokens,
+        # 1. Pure greeting or help prompt
+        if lower in GREETING_WORDS or lower in {"help", "what can you do", "who are you"}:
+            if not all_products:
+                return (
+                    "Hello! Welcome to Commercify. I'm your AI Shopping Concierge. "
+                    "Our catalog is currently empty, so once an administrator adds products, "
+                    "I can help you search by keyword, filter by budget, and verify real-time stock!"
+                )
+            categories = sorted(
+                {p.category.name for p in all_products if getattr(p, "category", None)}
             )
-            choice = response.choices[0]
+            cat_text = (
+                f" across categories like **{', '.join(categories)}**"
+                if categories
+                else ""
+            )
+            return (
+                f"Hello! Welcome to Commercify. I'm your AI Shopping Concierge.\n\n"
+                f"We currently have **{len(all_products)} product(s)** in our live catalog{cat_text}. "
+                f"You can ask me to:\n"
+                f"• Show all available products or browse by category\n"
+                f"• Find items within a budget (e.g., *\"under $150\"*)\n"
+                f"• Check live warehouse stock and pricing for a specific product\n\n"
+                f"What are you looking for today?"
+            )
 
-        final_text = choice.message.content or ""
-        await self.repository.add_message(session_id, MessageRole.ASSISTANT, final_text)
+        # 2. Thank you / goodbye
+        if any(phrase in lower for phrase in ("thank", "thanks", "bye", "goodbye")):
+            return "You're very welcome! Let me know anytime if you'd like to check products, prices, or stock."
 
+        if not all_products:
+            return (
+                "I checked our live catalog, and there are currently no products listed yet. "
+                "Please check back soon or add products via the Admin Console!"
+            )
+
+        # 3. Extract optional budget / price constraint (e.g. "under $150", "below 200")
+        max_price: Decimal | None = None
+        budget_match = re.search(
+            r"(?:under|below|less than|max|budget|around)\s*\$?\s*(\d+(?:\.\d{1,2})?)",
+            lower,
+        )
+        if budget_match:
+            max_price = Decimal(budget_match.group(1))
+
+        # 4. Ask to list everything / catalog overview
+        if any(
+            phrase in lower
+            for phrase in (
+                "all product",
+                "what product",
+                "what do you have",
+                "what do you sell",
+                "show me everything",
+                "list product",
+                "in stock",
+                "available",
+                "catalog",
+            )
+        ):
+            candidates = [
+                p
+                for p in all_products
+                if max_price is None or Decimal(str(p.price)) <= max_price
+            ]
+            if not candidates:
+                return f"We don't currently have any products under **${max_price}** in stock."
+            lines = [
+                f"• **{p.name}** — **${Decimal(str(p.price)):.2f}** "
+                f"({p.stock_quantity} in stock{f', {p.category.name}' if p.category else ''})"
+                for p in candidates[:8]
+            ]
+            return (
+                "Here is what we currently have available in our live catalog:\n\n"
+                + "\n".join(lines)
+                + "\n\nWould you like more details on any of these?"
+            )
+
+        # 5. Keyword matching against live products
+        tokens = [
+            w
+            for w in re.findall(r"[a-z0-9]+", lower)
+            if w not in STOP_WORDS and len(w) >= 2 and not w.isdigit()
+        ]
+        matched = []
+        for p in all_products:
+            if max_price is not None and Decimal(str(p.price)) > max_price:
+                continue
+            haystack = " ".join(
+                filter(
+                    None,
+                    [
+                        p.name.lower(),
+                        (p.description or "").lower(),
+                        p.category.name.lower() if p.category else "",
+                    ],
+                )
+            )
+            score = sum(1 for t in tokens if t in haystack)
+            if score > 0 or (max_price is not None and not tokens):
+                matched.append((score, p))
+
+        matched.sort(key=lambda item: item[0], reverse=True)
+
+        if matched:
+            top = [p for _, p in matched[:5]]
+            if len(top) == 1:
+                p = top[0]
+                stock_msg = (
+                    f"currently in stock (**{p.stock_quantity} available**)"
+                    if p.stock_quantity > 0
+                    else "currently **out of stock**"
+                )
+                desc = f"\n\n{p.description}" if p.description else ""
+                return (
+                    f"I found **{p.name}** in our catalog!\n\n"
+                    f"• **Price:** ${Decimal(str(p.price)):.2f}\n"
+                    f"• **Category:** {p.category.name if p.category else 'General'}\n"
+                    f"• **Availability:** {stock_msg}"
+                    f"{desc}"
+                )
+
+            lines = [
+                f"• **{p.name}** (${Decimal(str(p.price)):.2f}) — "
+                f"{p.stock_quantity} in stock"
+                + (f" — *{p.description}*" if p.description else "")
+                for p in top
+            ]
+            return (
+                "Here are the matching products from our live catalog:\n\n"
+                + "\n".join(lines)
+                + "\n\nWould you like details or stock info on a specific item?"
+            )
+
+        # 6. No keyword match — be transparent and show available catalog items
+        sample_lines = [
+            f"• **{p.name}** (${Decimal(str(p.price)):.2f}) — {p.stock_quantity} in stock"
+            for p in all_products[:5]
+        ]
+        return (
+            f"I couldn't find an exact match for *\"{cleaned}\"* in our catalog right now.\n\n"
+            f"Here is what we currently have available:\n"
+            + "\n".join(sample_lines)
+            + "\n\nFeel free to ask about any of these!"
+        )
+
+    async def send_message(self, session_id, user_message: str) -> str:
+        history = await self.repository.get_recent_messages(
+            session_id, limit=settings.chat_max_history_messages
+        )
+        messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        messages += [{"role": m.role.value, "content": m.content} for m in history]
+        messages.append({"role": "user", "content": user_message})
+
+        final_text = ""
+        try:
+            for _ in range(settings.chat_max_tool_iterations + 1):
+                response = await self._complete(messages)
+                choice = response.choices[0]
+
+                if choice.finish_reason != "tool_calls":
+                    final_text = choice.message.content or ""
+                    break
+
+                messages.append(choice.message.model_dump(exclude_none=True))
+
+                for tool_call in choice.message.tool_calls or []:
+                    args = self._parse_arguments(tool_call.function.arguments)
+                    logger.info(
+                        "tool_call_executed",
+                        tool=tool_call.function.name,
+                        args=args,
+                    )
+                    result = await self.tool_executor.execute(
+                        tool_call.function.name, args
+                    )
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": result,
+                        }
+                    )
+            else:
+                logger.warning("chat_tool_loop_capped", session_id=str(session_id))
+                final_text = (
+                    "I'm sorry — I couldn't finish that request. "
+                    "Could you rephrase or narrow it down?"
+                )
+        except Exception as exc:  # noqa: BLE001 - fallback when OpenAI quota/network fails
+            logger.warning("openai_chat_fallback", error=str(exc))
+            final_text = await self._local_concierge_reply(user_message)
+
+        if not final_text:
+            final_text = (
+                "I'm sorry — I couldn't complete that request. Please try again."
+            )
+
+        await self.repository.add_exchange(session_id, user_message, final_text)
         return final_text
+
+    async def send_message_for_user(self, user_id, user_message: str) -> str:
+        session = await self.repository.get_or_create_session(user_id)
+        return await self.send_message(session.id, user_message)
+
+    async def get_history(self, user_id, limit: int = 50) -> list:
+        session = await self.repository.get_or_create_session(user_id)
+        return await self.repository.get_recent_messages(session.id, limit=limit)
+
+    async def clear_history(self, user_id) -> None:
+        await self.repository.create_new_session(user_id)
