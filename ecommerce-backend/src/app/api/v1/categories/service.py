@@ -36,8 +36,15 @@ class CategoryService:
         
         if data.name is None:
             return CategoryResponse.model_validate(category)
-        
-        updated = await self.repository.update(category , name=data.name)
+
+        new_slug = slugify(data.name)
+        existing = await self.repository.get_by_slug(new_slug)
+        if existing and existing.id != category_id:
+            raise ConflictError(f"Category with slug '{new_slug}' already exists")
+
+        updated = await self.repository.update(
+            category, name=data.name, slug=new_slug
+        )
         return CategoryResponse.model_validate(updated)
     
     async def delete(self , category_id: uuid.UUID) -> None:
