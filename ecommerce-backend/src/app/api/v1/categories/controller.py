@@ -31,7 +31,7 @@ async def list_categories(
 ):
     return await service.list_all(limit=limit , offset=offset)
 
-@router.get("/{category_id}", response_model=CategoryResponse , dependencies=[Depends(require_admin)])
+@router.get("/{category_id}", response_model=CategoryResponse)
 async def get_category(
     category_id: uuid.UUID , 
     service: CategoryService = Depends(get_category_service)
