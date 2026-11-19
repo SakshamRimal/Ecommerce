@@ -64,6 +64,14 @@ class Settings(BaseSettings):
     #elastic search 
     elasticsearch_url: str = "http://localhost:9200"
     elasticsearch_products_index: str = "products"
+
+    #minio object storage
+    minio_endpoint: str = "http://localhost:9000"
+    minio_public_url: str = "http://localhost:9000"
+    minio_access_key: str = "minioadmin"
+    minio_secret_key: str = "minioadmin"
+    minio_bucket: str = "product-images"
+    minio_region: str = "us-east-1"
     
     #opentelemetry
     otel_exporter_endpoint: str = "localhost:4317"
