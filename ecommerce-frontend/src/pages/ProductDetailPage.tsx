@@ -256,7 +256,7 @@ export function ProductDetailPage() {
                   size="lg"
                   onClick={() =>
                     openChatWithPrompt(
-                      `Tell me more about the "${product.name}" ($${product.price}) and whether it's in stock or has complementary items.`
+                      `Tell me more about the "${product.name}" (NRs ${product.price}) and whether it's in stock or has complementary items.`
                     )
                   }
                 >
