@@ -39,16 +39,16 @@ export function sumMoney(amounts: Money[]): Money {
 
 export function formatMoney(
   amount: Money | number | null | undefined,
-  currency = "USD",
+  currencyPrefix = "NRs",
   locale = "en-US",
 ): string {
   const cents = parseCents(amount);
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
+  const formatted = new Intl.NumberFormat(locale, {
+    style: "decimal",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(cents / 100);
+  return `${currencyPrefix} ${formatted}`;
 }
 
 export function isValidMoneyInput(value: string): boolean {
