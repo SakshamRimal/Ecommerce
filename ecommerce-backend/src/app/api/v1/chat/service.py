@@ -15,7 +15,8 @@ logger = structlog.get_logger("chat_service")
 
 SYSTEM_PROMPT = """You are a helpful shopping assistant for an online store.
 Use the available tools to search the real product catalog and check stock —
-never invent prices, product names, or availability. If you don't know something,
+never invent prices, product names, or availability. Always display prices with
+the currency prefix 'NRs' (e.g. NRs 119.99). If you don't know something,
 say so and offer to search for it. Keep responses concise and friendly."""
 
 GREETING_WORDS = {
@@ -127,7 +128,7 @@ class ChatService:
                 f"We currently have **{len(all_products)} product(s)** in our live catalog{cat_text}. "
                 f"You can ask me to:\n"
                 f"• Show all available products or browse by category\n"
-                f"• Find items within a budget (e.g., *\"under $150\"*)\n"
+                f"• Find items within a budget (e.g., *\"under NRs 200\"*)\n"
                 f"• Check live warehouse stock and pricing for a specific product\n\n"
                 f"What are you looking for today?"
             )
@@ -142,10 +143,10 @@ class ChatService:
                 "Please check back soon or add products via the Admin Console!"
             )
 
-        # 3. Extract optional budget / price constraint (e.g. "under $150", "below 200")
+        # 3. Extract optional budget / price constraint (e.g. "under NRs 150", "below 200")
         max_price: Decimal | None = None
         budget_match = re.search(
-            r"(?:under|below|less than|max|budget|around)\s*\$?\s*(\d+(?:\.\d{1,2})?)",
+            r"(?:under|below|less than|max|budget|around)\s*(?:nrs\.?|rs\.?|\$)?\s*(\d+(?:\.\d{1,2})?)",
             lower,
         )
         if budget_match:
@@ -172,9 +173,9 @@ class ChatService:
                 if max_price is None or Decimal(str(p.price)) <= max_price
             ]
             if not candidates:
-                return f"We don't currently have any products under **${max_price}** in stock."
+                return f"We don't currently have any products under **NRs {max_price}** in stock."
             lines = [
-                f"• **{p.name}** — **${Decimal(str(p.price)):.2f}** "
+                f"• **{p.name}** — **NRs {Decimal(str(p.price)):.2f}** "
                 f"({p.stock_quantity} in stock{f', {p.category.name}' if p.category else ''})"
                 for p in candidates[:8]
             ]
@@ -222,14 +223,14 @@ class ChatService:
                 desc = f"\n\n{p.description}" if p.description else ""
                 return (
                     f"I found **{p.name}** in our catalog!\n\n"
-                    f"• **Price:** ${Decimal(str(p.price)):.2f}\n"
+                    f"• **Price:** NRs {Decimal(str(p.price)):.2f}\n"
                     f"• **Category:** {p.category.name if p.category else 'General'}\n"
                     f"• **Availability:** {stock_msg}"
                     f"{desc}"
                 )
 
             lines = [
-                f"• **{p.name}** (${Decimal(str(p.price)):.2f}) — "
+                f"• **{p.name}** (NRs {Decimal(str(p.price)):.2f}) — "
                 f"{p.stock_quantity} in stock"
                 + (f" — *{p.description}*" if p.description else "")
                 for p in top
@@ -242,7 +243,7 @@ class ChatService:
 
         # 6. No keyword match — be transparent and show available catalog items
         sample_lines = [
-            f"• **{p.name}** (${Decimal(str(p.price)):.2f}) — {p.stock_quantity} in stock"
+            f"• **{p.name}** (NRs {Decimal(str(p.price)):.2f}) — {p.stock_quantity} in stock"
             for p in all_products[:5]
         ]
         return (
