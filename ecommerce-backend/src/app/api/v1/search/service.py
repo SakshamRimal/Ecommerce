@@ -81,11 +81,22 @@ class SearchService:
             )
 
         hits = response["hits"]["hits"]
+        if not hits and self.product_repository is not None:
+            return await self._fallback_search(
+                query=query,
+                limit=limit,
+                offset=offset,
+                min_price=min_price,
+                max_price=max_price,
+                category_id=category_id,
+            )
+
         results = [
             ProductSearchResult(
                 id=hit["_source"]["id"],
                 name=hit["_source"]["name"],
                 description=hit["_source"].get("description"),
+                image_url=hit["_source"].get("image_url"),
                 category_name=hit["_source"].get("category_name", ""),
                 price=hit["_source"]["price"],
                 stock_quantity=hit["_source"]["stock_quantity"],
@@ -130,6 +141,7 @@ class SearchService:
                 id=product.id,
                 name=product.name,
                 description=product.description,
+                image_url=getattr(product, "image_url", None),
                 category_name=product.category.name if product.category else "",
                 price=product.price,
                 stock_quantity=product.stock_quantity,
@@ -161,6 +173,7 @@ class SearchService:
 
         min_dec = _to_decimal(min_price)
         max_dec = _to_decimal(max_price)
+        products = []
         try:
             query_embedding = await generate_embedding(query)
             products = await self.product_repository.semantic_search(
@@ -172,13 +185,28 @@ class SearchService:
                 category_id=category_id,
             )
         except Exception as exc:  # noqa: BLE001 - degrade when pgvector/OpenAI unavailable
-            logger.warning("semantic_search_fallback_to_keyword", error=str(exc))
-            products = await self.product_repository.search_by_keyword(
-                query=query,
-                limit=limit,
-                offset=offset,
-                min_price=min_dec,
-                max_price=max_dec,
-                category_id=category_id,
+            logger.warning("semantic_search_fallback_to_concept", error=str(exc))
+
+        if not products:
+            concept_fn = getattr(
+                self.product_repository, "semantic_concept_search", None
             )
+            if callable(concept_fn):
+                products = await concept_fn(
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                    min_price=min_dec,
+                    max_price=max_dec,
+                    category_id=category_id,
+                )
+            else:
+                products = await self.product_repository.search_by_keyword(
+                    query=query,
+                    limit=limit,
+                    offset=offset,
+                    min_price=min_dec,
+                    max_price=max_dec,
+                    category_id=category_id,
+                )
         return [ProductListResponse.model_validate(product) for product in products]
