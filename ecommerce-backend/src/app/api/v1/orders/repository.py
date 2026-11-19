@@ -16,8 +16,14 @@ class OrderRepository:
         return result.scalars().first()
     
     async def get_product_for_update(self , product_id: uuid.UUID) -> Product | None:
-        """SELECT ... FOR UPDATE to lock the product row for update to prevent race conditions during"""
-        stmt = select(Product).where(Product.id == product_id).with_for_update()
+        """SELECT ... FOR UPDATE with populate_existing=True so locked rows always
+        reflect the latest committed stock_quantity rather than stale session cache."""
+        stmt = (
+            select(Product)
+            .where(Product.id == product_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
         result = await self.session.execute(stmt)
         return result.scalars().first()
     
@@ -32,5 +38,45 @@ class OrderRepository:
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_by_id_for_user(
+        self, order_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Order | None:
+        stmt = (
+            select(Order)
+            .options(selectinload(Order.items))
+            .where(Order.id == order_id, Order.user_id == user_id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_id_for_user_for_update(
+        self, order_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Order | None:
+        stmt = (
+            select(Order)
+            .where(Order.id == order_id, Order.user_id == user_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        result = await self.session.execute(stmt)
+        order = result.scalar_one_or_none()
+        if order is not None:
+            await self.session.refresh(order, attribute_names=["items"])
+        return order
+
+    async def list_by_user(
+        self, user_id: uuid.UUID, limit: int = 20, offset: int = 0
+    ) -> list[Order]:
+        stmt = (
+            select(Order)
+            .options(selectinload(Order.items))
+            .where(Order.user_id == user_id)
+            .order_by(Order.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
     
     
