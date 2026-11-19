@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     cache_ttl_seconds: int = 300
     arq_redis_url: str = "redis://localhost:6379/1"
+    # Slowapi storage. Leave unset for per-process memory; set to e.g.
+    # "redis://localhost:6379/2" so rate limits are shared across workers.
+    rate_limit_storage_uri: str | None = None
     
     #smtp 
     mail_username: str 
@@ -54,7 +57,7 @@ class Settings(BaseSettings):
     mail_from: str 
     mail_from_name: str = "YourShop"
     mail_server: str
-    mail_port: int = 2525
+    mail_port: int = 587
     mail_starttls: bool = True
     mail_ssl_tls: bool = False
     
@@ -70,6 +73,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_max_tokens: int = 800
     chat_max_history_messages: int = 20
+    chat_max_tool_iterations: int = 5
     
     
     @computed_field
