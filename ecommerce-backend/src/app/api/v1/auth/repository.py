@@ -1,6 +1,8 @@
 from sqlalchemy import select 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ConflictError
 from app.models.user import User 
 
 class UserRepository:
@@ -15,8 +17,12 @@ class UserRepository:
     async def create(self , email:str , hashed_password:str , full_name:str) -> User:
         user = User(email=email , hashed_password=hashed_password , full_name=full_name)
         self.session.add(user)
-        await self.session.flush()
-        await self.session.commit()
+        try:
+            await self.session.flush()
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            raise ConflictError("Email already exists")
         await self.session.refresh(user)
         return user
     
