@@ -56,6 +56,14 @@ class ProductListResponse(BaseModel):
     price: Decimal
     stock_quantity: int
     category: CategoryResponse
+
+
+class ProductImageUploadResponse(BaseModel):
+    image_url: str
+    bucket: str
+    object_key: str
+    content_type: str
+    size_bytes: int
     
 
     
