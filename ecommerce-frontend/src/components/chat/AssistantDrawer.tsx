@@ -17,7 +17,7 @@ import { Button } from "../ui/Primitives";
 
 const STARTER_PROMPTS = [
   "What products do you currently have in stock?",
-  "Do you have any running shoes under $150?",
+  "Do you have any running shoes under NRs 150?",
   "Tell me about the Nike Air Max and check its stock",
 ];
 
