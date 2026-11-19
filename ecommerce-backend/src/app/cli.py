@@ -30,28 +30,32 @@ SEED_CATALOG = [
         "products": [
             {
                 "name": "Nike Air Max",
-                "description": "Responsive cushioned running shoes engineered for daily road training and marathon comfort.",
+                "legacy_names": [],
+                "description": "Cushioned daily running shoes built for road training, marathon comfort, and all-day walking.",
                 "price": Decimal("119.99"),
                 "stock_quantity": 42,
                 "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Apex GTX Alpine Trail Runner",
-                "description": "Waterproof GORE-TEX membrane with Vibram Megagrip lugs for technical mountain trails.",
+                "name": "Trail Running Shoes",
+                "legacy_names": ["Apex GTX Alpine Trail Runner"],
+                "description": "Waterproof GORE-TEX grip shoes designed for hiking in the rain, mountain trails, and outdoor running.",
                 "price": Decimal("168.50"),
                 "stock_quantity": 18,
                 "image_url": "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Velocity Carbon Marathon Racer",
-                "description": "Full-length carbon fiber propulsion plate paired with nitrogen-infused supercritical foam for race-day PRs.",
+                "name": "Carbon Marathon Shoes",
+                "legacy_names": ["Velocity Carbon Marathon Racer"],
+                "description": "Lightweight carbon-plated racing shoes for fast marathon sprints, track workouts, and speed training.",
                 "price": Decimal("249.00"),
                 "stock_quantity": 15,
                 "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "CloudStride Recovery Knit Trainer",
-                "description": "Ultra-plush dual-density midsole and breathable engineered mesh upper for effortless everyday miles.",
+                "name": "Knit Running Trainers",
+                "legacy_names": ["CloudStride Recovery Knit Trainer"],
+                "description": "Breathable mesh recovery trainers for gym workouts, jogging, and everyday casual comfort.",
                 "price": Decimal("138.00"),
                 "stock_quantity": 31,
                 "image_url": "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=900&q=80",
@@ -62,29 +66,33 @@ SEED_CATALOG = [
         "category": ("Audio & Studio", "audio-studio"),
         "products": [
             {
-                "name": "Aether ANC Studio Wireless Headphones",
-                "description": "Custom 45mm beryllium drivers, adaptive hybrid active noise cancellation, and 48-hour battery life.",
+                "name": "Wireless Headphones",
+                "legacy_names": ["Aether ANC Studio Wireless Headphones"],
+                "description": "Quiet active noise cancelling headphones for deep work, focus, travel flights, and studio music.",
                 "price": Decimal("349.00"),
                 "stock_quantity": 14,
                 "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Sonos Era Reference Bookshelf Monitors",
-                "description": "Compact nearfield studio monitors with ribbon tweeters and lossless USB-C DAC input.",
+                "name": "Bluetooth Bookshelf Speakers",
+                "legacy_names": ["Sonos Era Reference Bookshelf Monitors"],
+                "description": "Compact studio monitor speakers with rich bass and USB-C audio for desktop music and home entertainment.",
                 "price": Decimal("279.00"),
                 "stock_quantity": 9,
                 "image_url": "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Pulse Pro True Wireless Earbuds",
-                "description": "Spatial audio head tracking, multipoint Bluetooth 5.4, and IPX5 sweat resistance in a pocketable aluminum case.",
+                "name": "Wireless Earbuds",
+                "legacy_names": ["Pulse Pro True Wireless Earbuds"],
+                "description": "Sweatproof noise-isolating earbuds with spatial audio for gym workouts, commuting, and clear calls.",
                 "price": Decimal("189.00"),
                 "stock_quantity": 27,
                 "image_url": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Vox Broadcast XLR/USB Condenser Microphone",
-                "description": "Cardioid studio capsule with built-in DSP preamp, zero-latency headphone monitoring, and weighted desktop boom.",
+                "name": "USB Studio Microphone",
+                "legacy_names": ["Vox Broadcast XLR/USB Condenser Microphone"],
+                "description": "Broadcast condenser microphone for podcasting, streaming, remote meetings, and voice recording.",
                 "price": Decimal("159.00"),
                 "stock_quantity": 19,
                 "image_url": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=80",
@@ -95,29 +103,33 @@ SEED_CATALOG = [
         "category": ("Workspace & Keyboards", "workspace-keyboards"),
         "products": [
             {
-                "name": "Chronos 75% CNC Aluminum Mechanical Keyboard",
-                "description": "Gasket-mounted 6063 anodized aluminum chassis with hot-swappable tactile switches and PBT keycaps.",
+                "name": "Mechanical Keyboard",
+                "legacy_names": ["Chronos 75% CNC Aluminum Mechanical Keyboard"],
+                "description": "Ergonomic tactile mechanical keyboard for comfortable coding all day, fast typing, and minimal wrist fatigue.",
                 "price": Decimal("219.00"),
                 "stock_quantity": 11,
                 "image_url": "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Lumen Architect Cantilever Desk Lamp",
-                "description": "CRI 97+ tunable LED task bar with wireless Qi charging base and stepless rotary dimmer.",
+                "name": "LED Desk Lamp",
+                "legacy_names": ["Lumen Architect Cantilever Desk Lamp"],
+                "description": "Minimalist desk lighting for late nights with eye-care dimming and wireless phone charging base.",
                 "price": Decimal("145.00"),
                 "stock_quantity": 23,
                 "image_url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Vector Pro 8K Wireless Ergonomic Mouse",
-                "description": "54g magnesium-alloy shell with 30,000 DPI optical sensor, optical microswitches, and USB-C rapid charging.",
+                "name": "Wireless Ergonomic Mouse",
+                "legacy_names": ["Vector Pro 8K Wireless Ergonomic Mouse"],
+                "description": "Lightweight ergonomic mouse engineered to prevent wrist fatigue during long coding and design sessions.",
                 "price": Decimal("129.00"),
                 "stock_quantity": 24,
                 "image_url": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Nordic Merino Felt & Walnut Desk Shelf",
-                "description": "Solid American black walnut monitor riser with integrated MagSafe tray and wool felt desk mat.",
+                "name": "Walnut Desk Shelf",
+                "legacy_names": ["Nordic Merino Felt & Walnut Desk Shelf"],
+                "description": "Solid walnut monitor stand and desk organizer for a clean, productive home office setup.",
                 "price": Decimal("175.00"),
                 "stock_quantity": 14,
                 "image_url": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=900&q=80",
@@ -128,29 +140,33 @@ SEED_CATALOG = [
         "category": ("Everyday Carry", "everyday-carry"),
         "products": [
             {
-                "name": "Nomad 24L Weatherproof Commuter Pack",
-                "description": "Cordura Ballistic nylon backpack with suspended 16-inch laptop vault and magnetic fidlock hardware.",
+                "name": "Waterproof Laptop Backpack",
+                "legacy_names": ["Nomad 24L Weatherproof Commuter Pack"],
+                "description": "Waterproof bag for daily laptop commute, travel gear organization, and rainy weather protection.",
                 "price": Decimal("195.00"),
                 "stock_quantity": 16,
                 "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Horology Field Automatic Titanium Watch",
-                "description": "Grade-5 brushed titanium case, sapphire crystal, Japanese automatic movement, and 100m water resistance.",
+                "name": "Titanium Wrist Watch",
+                "legacy_names": ["Horology Field Automatic Titanium Watch"],
+                "description": "Scratch-resistant automatic field watch with sapphire glass for everyday wear and outdoor adventure.",
                 "price": Decimal("299.00"),
                 "stock_quantity": 7,
                 "image_url": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "volt 140W GaN Travel Power Bank 24000mAh",
-                "description": "Airline-safe high-output USB-C PD 3.1 battery pack with real-time OLED wattage telemetry.",
+                "name": "Fast Power Bank",
+                "legacy_names": ["volt 140W GaN Travel Power Bank 24000mAh"],
+                "description": "140W USB-C portable laptop and phone charger for remote work, flights, and travel backup.",
                 "price": Decimal("115.00"),
                 "stock_quantity": 29,
                 "image_url": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Obsidian Polarized Acetate Sunglasses",
-                "description": "Hand-polished Italian Mazzucchelli acetate frames with anti-reflective Carl Zeiss polarized lenses.",
+                "name": "Polarized Sunglasses",
+                "legacy_names": ["Obsidian Polarized Acetate Sunglasses"],
+                "description": "UV-protective anti-glare sunglasses for driving, sunny travel, and outdoor sports.",
                 "price": Decimal("149.00"),
                 "stock_quantity": 21,
                 "image_url": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=80",
@@ -161,29 +177,33 @@ SEED_CATALOG = [
         "category": ("Specialty Coffee", "specialty-coffee"),
         "products": [
             {
-                "name": "Fellowship Precision Conical Burr Grinder",
-                "description": "64mm flat titanium-coated burrs with 41 stepless grind settings for espresso and pour-over.",
+                "name": "Electric Coffee Grinder",
+                "legacy_names": ["Fellowship Precision Conical Burr Grinder"],
+                "description": "Precision burr coffee grinder for fresh morning espresso, pour-over brewing, and specialty coffee lovers.",
                 "price": Decimal("225.00"),
                 "stock_quantity": 12,
                 "image_url": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Artisan PID Gooseneck Pour-Over Kettle",
-                "description": "Degree-accurate PID temperature control with counterbalanced precision spout and 60-minute hold mode.",
+                "name": "Gooseneck Coffee Kettle",
+                "legacy_names": ["Artisan PID Gooseneck Pour-Over Kettle"],
+                "description": "Temperature-controlled electric pour-over kettle for specialty coffee and green tea brewing.",
                 "price": Decimal("165.00"),
                 "stock_quantity": 20,
                 "image_url": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Copper Vacuum Insulated Tasting Carafe",
-                "description": "Double-wall borosilicate glass and brushed copper server engineered to preserve single-origin aromatics.",
+                "name": "Insulated Coffee Mug",
+                "legacy_names": ["Copper Vacuum Insulated Tasting Carafe"],
+                "description": "Double-wall thermal carafe and travel mug to keep coffee hot during morning commutes.",
                 "price": Decimal("78.00"),
                 "stock_quantity": 34,
                 "image_url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Barista Pro 0.1g Espresso Flow Scale",
-                "description": "Water-resistant rechargeable scale with automatic shot timer and real-time flow-rate graph.",
+                "name": "Digital Coffee Scale",
+                "legacy_names": ["Barista Pro 0.1g Espresso Flow Scale"],
+                "description": "Precision kitchen and espresso timer scale for consistent pour-over coffee recipes.",
                 "price": Decimal("89.00"),
                 "stock_quantity": 17,
                 "image_url": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=900&q=80",
@@ -194,29 +214,33 @@ SEED_CATALOG = [
         "category": ("Smart Home & Cameras", "smart-home-cameras"),
         "products": [
             {
-                "name": "Leica-Style Compact 4K Rangefinder Camera",
-                "description": "APS-C CMOS sensor with fast f/2.0 prime lens, hybrid optical viewfinder, and film-simulation dials.",
+                "name": "4K Digital Camera",
+                "legacy_names": ["Leica-Style Compact 4K Rangefinder Camera"],
+                "description": "Compact mirrorless camera for travel photography, 4K vlogging, and street portraits.",
                 "price": Decimal("899.00"),
                 "stock_quantity": 5,
                 "image_url": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Halo Matter Smart Ambient Light Bar",
-                "description": "16-million color RGBIC bias lighting with Matter-over-Thread support and circadian rhythm automation.",
+                "name": "Smart LED Light Bar",
+                "legacy_names": ["Halo Matter Smart Ambient Light Bar"],
+                "description": "Ambient smart bias lighting for cozy late-night desk setups, gaming, and home theater mood.",
                 "price": Decimal("95.00"),
                 "stock_quantity": 26,
                 "image_url": "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Atmos HEPA 14 Smart Air Purifier",
-                "description": "Whisper-quiet 22dB brushless motor with laser PM2.5 air quality display and activated carbon filter.",
+                "name": "Smart Air Purifier",
+                "legacy_names": ["Atmos HEPA 14 Smart Air Purifier"],
+                "description": "Whisper-quiet HEPA air purifier for clean bedroom air, allergy relief, and healthy home workspaces.",
                 "price": Decimal("259.00"),
                 "stock_quantity": 13,
                 "image_url": "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=900&q=80",
             },
             {
-                "name": "Zenith Portable 1080p Laser Cinema Projector",
-                "description": "Auto-keystone laser projection up to 120 inches with dual Harman Kardon speakers and Wi-Fi 6 casting.",
+                "name": "Portable Mini Projector",
+                "legacy_names": ["Zenith Portable 1080p Laser Cinema Projector"],
+                "description": "1080p smart cinema projector with built-in speakers for bedroom movie nights and presentations.",
                 "price": Decimal("449.00"),
                 "stock_quantity": 8,
                 "image_url": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=900&q=80",
@@ -361,11 +385,12 @@ async def _seed_catalog() -> int:
                 added_categories += 1
 
             for item in group["products"]:
+                candidate_names = [item["name"], *item.get("legacy_names", [])]
                 existing = (
                     await session.execute(
-                        select(Product).where(Product.name == item["name"])
+                        select(Product).where(Product.name.in_(candidate_names))
                     )
-                ).scalar_one_or_none()
+                ).scalars().first()
 
                 if existing is None:
                     session.add(
@@ -379,10 +404,19 @@ async def _seed_catalog() -> int:
                         )
                     )
                     added_products += 1
-                elif not existing.image_url:
-                    existing.image_url = item["image_url"]
-                    existing.description = item["description"]
-                    updated_products += 1
+                else:
+                    changed = False
+                    if existing.name != item["name"]:
+                        existing.name = item["name"]
+                        changed = True
+                    if existing.description != item["description"]:
+                        existing.description = item["description"]
+                        changed = True
+                    if not existing.image_url:
+                        existing.image_url = item["image_url"]
+                        changed = True
+                    if changed:
+                        updated_products += 1
 
         # Ensure every category in the database has at least 2 products
         all_categories = (await session.execute(select(Category))).scalars().all()
