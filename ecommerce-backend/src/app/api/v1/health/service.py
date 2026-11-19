@@ -9,7 +9,7 @@ class HealthService:
         
         try:
             db_ok = await self.repository.check_database()
-        except Exception as e:
+        except Exception:
             db_ok = False
             
         return HealthCheckResponse(
