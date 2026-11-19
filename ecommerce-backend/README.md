@@ -6,6 +6,22 @@ A production-ready, async-first ecommerce API built with FastAPI, PostgreSQL, Re
 
 This is a RESTful backend for an ecommerce platform supporting product management, shopping carts, order processing, full-text search, background jobs, and observability. Built with a clean layered architecture (Controller → Service → Repository) and designed for horizontal scaling.
 
+## Documentation
+
+- **Full docs index:** [`docs/README.md`](docs/README.md)
+- **Architecture:** [`docs/02-architecture.md`](docs/02-architecture.md)
+- **API reference:** [`docs/06-api-reference.md`](docs/06-api-reference.md)
+- **Known issues:** [`docs/18-known-issues.md`](docs/18-known-issues.md)
+- **Frontend handoff:** [`docs/19-frontend-handoff.md`](docs/19-frontend-handoff.md)
+- **Agent skills:** [`.agents/README.md`](.agents/README.md)
+- **Agent guide:** [`AGENTS.md`](AGENTS.md)
+
+## Documentation status
+
+The docs were generated from the code and verified by running the unit tests
+(47 passed, 1 failed — see the known issues doc). Start with the docs index before
+changing a feature.
+
 ## Tech Stack
 
 | Category | Technology |
