@@ -18,9 +18,7 @@ This is a RESTful backend for an ecommerce platform supporting product managemen
 
 ## Documentation status
 
-The docs were generated from the code and verified by running the unit tests
-(47 passed, 1 failed — see the known issues doc). Start with the docs index before
-changing a feature.
+All backend endpoints, concurrency locks, MinIO image uploads, and background jobs are verified by the automated test suite (**124 passed, 0 failed**, `ruff check src tests` clean). Start with the docs index before changing a feature.
 
 ## Tech Stack
 
@@ -28,13 +26,15 @@ changing a feature.
 |----------|-----------|
 | Framework | FastAPI 0.141 |
 | Language | Python 3.12 |
-| Database | PostgreSQL 16 |
+| Database | PostgreSQL 16 + pgvector |
 | ORM | SQLAlchemy 2.0 (async) |
-| Cache | Redis 7 |
-| Search | Elasticsearch 8.15 |
+| Cache & Locks | Redis 7 |
+| Search | Elasticsearch 8.16 + pgvector semantic search |
+| Object Storage | MinIO (S3 Signature V4 async uploads) |
+| AI Concierge | OpenAI Tool Calling (`gpt-4o-mini` + `text-embedding-3-small`) |
 | Background Jobs | arq (Redis-based) |
 | Migrations | Alembic |
-| Auth | JWT (python-jose) + bcrypt |
+| Auth | JWT (`jti` rotation & revocation) + bcrypt |
 | Observability | OpenTelemetry, Prometheus, structlog |
 | Containerization | Docker, Docker Compose |
 | Package Manager | uv |
@@ -200,7 +200,10 @@ This starts all services: PostgreSQL, Redis, Elasticsearch, OpenTelemetry Collec
 
 ```bash
 # Create an admin user
-uv run ecommerce create-admin --email admin@example.com --password secret123 --full-name "Admin"
+uv run ecommerce create-admin --email admin@example.com --password secret123 --full-name "Admin" --promote-existing
+
+# Seed categories and curated products (2+ products per category)
+uv run ecommerce seed-catalog
 
 # Apply migrations
 uv run alembic upgrade head
