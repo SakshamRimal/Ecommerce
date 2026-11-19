@@ -1,6 +1,5 @@
 import asyncio
-from sqlalchemy import select 
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select
 
 from app.db.session import AsyncSessionFactory
 from app.models.product import Product
