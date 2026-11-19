@@ -1,12 +1,20 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import uuid
 from sqlalchemy import ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
+if TYPE_CHECKING:
+    from app.models.product import Product
+    from app.models.user import User
+
 
 class Cart(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     __tablename__ = "carts"
+    __table_args__ = (UniqueConstraint("user_id", name="uq_carts_user_id"),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
