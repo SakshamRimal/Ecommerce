@@ -148,6 +148,57 @@ class TestChatService:
             session_id, "Do you have boots?", "We have hiking boots in stock!"
         )
 
+    async def test_llm_provider_fallback_gemini_to_grok_to_openai(self):
+        repo = AsyncMock()
+        executor = AsyncMock()
+        service = ChatService(repo, executor)
+
+        gemini_client = AsyncMock()
+        grok_client = AsyncMock()
+        openai_client = AsyncMock()
+
+        choice = MagicMock()
+        choice.finish_reason = "stop"
+        choice.message.content = "OpenAI fallback reply"
+        openai_resp = MagicMock(choices=[choice])
+
+        # Scenario 1: Gemini quota exceeded -> Grok quota exceeded -> OpenAI succeeds
+        gemini_client.chat.completions.create = AsyncMock(
+            side_effect=RuntimeError("429 Gemini quota exceeded")
+        )
+        grok_client.chat.completions.create = AsyncMock(
+            side_effect=RuntimeError("429 Grok quota exceeded")
+        )
+        openai_client.chat.completions.create = AsyncMock(
+            return_value=openai_resp
+        )
+
+        service.providers = [
+            {"name": "gemini", "model": "gemini-2.0-flash", "client": gemini_client},
+            {"name": "grok", "model": "llama-3.3-70b-versatile", "client": grok_client},
+            {"name": "openai", "model": "gpt-4o-mini", "client": openai_client},
+        ]
+
+        res = await service._complete([{"role": "user", "content": "Hello"}])
+        assert res is openai_resp
+        gemini_client.chat.completions.create.assert_awaited_once()
+        grok_client.chat.completions.create.assert_awaited_once()
+        openai_client.chat.completions.create.assert_awaited_once()
+
+        # Scenario 2: Gemini quota exceeded -> Grok succeeds (OpenAI not called)
+        gemini_client.chat.completions.create.reset_mock()
+        grok_client.chat.completions.create.reset_mock()
+        openai_client.chat.completions.create.reset_mock()
+
+        grok_resp = MagicMock(choices=[choice])
+        grok_client.chat.completions.create = AsyncMock(return_value=grok_resp)
+
+        res2 = await service._complete([{"role": "user", "content": "Hello"}])
+        assert res2 is grok_resp
+        gemini_client.chat.completions.create.assert_awaited_once()
+        grok_client.chat.completions.create.assert_awaited_once()
+        openai_client.chat.completions.create.assert_not_awaited()
+
 
 class TestAdminCli:
     async def test_cli_rejects_short_password(self):
