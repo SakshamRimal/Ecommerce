@@ -76,8 +76,18 @@ class Settings(BaseSettings):
     #opentelemetry
     otel_exporter_endpoint: str = "localhost:4317"
     
-    #openai 
-    openai_api_key: str 
+    #llm providers (priority: 1. Gemini Free -> 2. Grok/Groq Free -> 3. OpenAI)
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.0-flash"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+    grok_api_key: str | None = None
+    groq_api_key: str | None = None
+    grok_model: str = "llama-3.3-70b-versatile"
+    grok_base_url: str | None = None
+
+    #openai (tertiary fallback)
+    openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
     openai_max_tokens: int = 800
     chat_max_history_messages: int = 20
