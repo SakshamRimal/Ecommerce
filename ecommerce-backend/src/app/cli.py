@@ -384,17 +384,39 @@ async def _seed_catalog() -> int:
                     existing.description = item["description"]
                     updated_products += 1
 
+        # Ensure every category in the database has at least 2 products
+        all_categories = (await session.execute(select(Category))).scalars().all()
+        default_pool = FALLBACK_CATEGORY_IMAGES["electronics"]
+        for cat_obj in all_categories:
+            cat_products = (
+                await session.execute(
+                    select(Product).where(Product.category_id == cat_obj.id)
+                )
+            ).scalars().all()
+            pool = FALLBACK_CATEGORY_IMAGES.get(cat_obj.slug, default_pool)
+            needed = max(0, 2 - len(cat_products))
+            for idx in range(needed):
+                tier = "Pro Edition" if idx == 0 else "Studio Series"
+                candidate_name = f"{cat_obj.name} {tier}"
+                session.add(
+                    Product(
+                        name=candidate_name,
+                        description=f"Premium {cat_obj.name.lower()} engineered for durability, comfort, and daily performance.",
+                        price=Decimal("149.00") if idx == 0 else Decimal("199.00"),
+                        stock_quantity=18 + idx * 5,
+                        image_url=pool[idx % len(pool)],
+                        category_id=cat_obj.id,
+                    )
+                )
+                added_products += 1
+
         # Backfill image_url for any existing products missing images
-        cats_by_id = {
-            c.id: c.slug
-            for c in (await session.execute(select(Category))).scalars().all()
-        }
+        cats_by_id = {c.id: c.slug for c in all_categories}
         missing_img_products = (
             await session.execute(
                 select(Product).where(Product.image_url.is_(None))
             )
         ).scalars().all()
-        default_pool = FALLBACK_CATEGORY_IMAGES["electronics"]
         for idx, prod in enumerate(missing_img_products):
             slug = cats_by_id.get(prod.category_id, "")
             pool = FALLBACK_CATEGORY_IMAGES.get(slug, default_pool)
