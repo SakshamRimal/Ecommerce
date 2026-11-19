@@ -1,3 +1,4 @@
+import uuid
 import structlog
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload , selectinload
@@ -62,9 +63,9 @@ async def delete_product_from_index_task(ctx , product_id: str) -> None:
     
 async def send_order_confirmation_task(ctx , order_id: str , user_email: str , user_full_name: str) -> None:
     """Background job: send the order confirmation email without blocking the main thread."""
-    
+    order_uuid = uuid.UUID(str(order_id))
     async with AsyncSessionFactory() as session:
-        stmt = select(Order).options(selectinload(Order.items)).where(Order.id == order_id)
+        stmt = select(Order).options(selectinload(Order.items)).where(Order.id == order_uuid)
         result = await session.execute(stmt)
         order = result.scalar_one_or_none()
         
