@@ -1,5 +1,4 @@
 import uuid
-import pytest
 from unittest.mock import AsyncMock
 from httpx import AsyncClient
 from app.main import app
@@ -156,3 +155,50 @@ class TestMeEndpoint:
         data = resp.json()
         assert data["email"] == "user@example.com"
         app.dependency_overrides.pop(get_current_user, None)
+
+
+class TestRefreshAndLogoutEndpoints:
+    async def test_refresh_success(self, client: AsyncClient):
+        mock_service = make_mock_service()
+        mock_service.refresh_token = AsyncMock(
+            return_value=TokenResponse(
+                access_token="new-access",
+                refresh_token="new-refresh",
+            )
+        )
+        app.dependency_overrides[get_auth_service] = lambda: mock_service
+
+        resp = await client.post(
+            "/api/v1/auth/refresh",
+            json={"refresh_token": "old-refresh"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["access_token"] == "new-access"
+        app.dependency_overrides.pop(get_auth_service, None)
+
+    async def test_logout_success(self, client: AsyncClient):
+        user = User(
+            id=uuid.uuid4(),
+            email="user@example.com",
+            hashed_password="x",
+            full_name="User",
+            is_active=True,
+            role=UserRole.CUSTOMER,
+        )
+        mock_service = make_mock_service()
+        mock_service.logout = AsyncMock(return_value=None)
+        app.dependency_overrides[get_current_user] = lambda: user
+        app.dependency_overrides[get_auth_service] = lambda: mock_service
+
+        resp = await client.post(
+            "/api/v1/auth/logout",
+            headers={"Authorization": "Bearer dummy-access-token"},
+            json={"refresh_token": "dummy-refresh-token"},
+        )
+        assert resp.status_code == 200
+        assert resp.json() == {"detail": "Logged out"}
+        mock_service.logout.assert_awaited_once_with(
+            "dummy-access-token", "dummy-refresh-token"
+        )
+        app.dependency_overrides.pop(get_current_user, None)
+        app.dependency_overrides.pop(get_auth_service, None)
