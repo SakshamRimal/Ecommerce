@@ -61,11 +61,12 @@ class ToolExecutor:
                 category_id=_parse_uuid(arguments.get("category_id")),
             )
             return json.dumps({
+                "currency": "NRs",
                 "results": [
                     {
                         "id": str(r.id),
                         "name": r.name,
-                        "price": str(r.price),
+                        "price": f"NRs {r.price}",
                         "stock": r.stock_quantity,
                         "category": r.category_name,
                     }
@@ -85,7 +86,8 @@ class ToolExecutor:
             return json.dumps({
                 "id": str(product.id),
                 "name": product.name,
-                "price": str(product.price),
+                "currency": "NRs",
+                "price": f"NRs {product.price}",
                 "stock": product.stock_quantity,
                 "description": product.description,
                 "category": product.category.name if product.category else None,
